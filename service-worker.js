@@ -441,7 +441,9 @@
 // other person's layer before opening; "Add check measure" label.
 // v55 (2026-09-27): Open check measure goes straight to the page (no
 // second popup); job notes list faster; no long-press delete in Site Measure.
-var CACHE_NAME = "utzline-viewer-cache-v55";
+// v56 (2026-09-27): other people's layers drawn once and kept (no full
+// redraw + photo re-decode per arrival/redraw); on-device "Timings" readout.
+var CACHE_NAME = "utzline-viewer-cache-v56";
 var ICON_VERSION = CACHE_NAME.replace("utzline-viewer-cache-", "");
 
 var PRECACHE_URLS = [
