@@ -144,6 +144,25 @@ def build():
         )
     html = VIEW_ONLY_MODE_RE.sub("var VIEW_ONLY_MODE = true;", html, count=1)
 
+    # 1b. Fix a real, long-standing bug found 2026-09-23 while chasing down
+    #     an "UTZLINE Install ITP branding" request: source.html's own
+    #     <title> tag is hardcoded to "UTZLINE Site Measure" (correct for
+    #     the editor build), and this build script only ever INSERTED the
+    #     PWA head tags after that line -- it never overrode the title
+    #     itself for this app. So every installed Viewer build's browser
+    #     tab / taskbar tooltip has always said "UTZLINE Site Measure",
+    #     even though manifest.json and apple-mobile-web-app-title (below)
+    #     correctly say "UTZLINE Viewer". Only this build.py is fixed --
+    #     the main app's own build.py leaves the shared source's title
+    #     untouched, since "UTZLINE Site Measure" is correct there.
+    if "<title>UTZLINE Site Measure</title>" not in html:
+        sys.exit(
+            "Expected <title>UTZLINE Site Measure</title> not found in "
+            "source.html -- it may have changed shape; check this script's "
+            "assumptions before proceeding."
+        )
+    html = html.replace("<title>UTZLINE Site Measure</title>", "<title>UTZLINE Viewer</title>", 1)
+
     # 2. Swap the Google Fonts <link> for local @font-face rules.
     if not GOOGLE_FONTS_LINK_RE.search(html):
         sys.exit("Expected Google Fonts <link> not found in source.html")

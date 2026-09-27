@@ -387,7 +387,22 @@
 // had been failing on "--" inside markup comments); IndexedDB connection
 // reuse, no per-edit IndexedDB copy in project mode, rAF-coalesced drag
 // renders, level-list names cached, smaller backup PNGs.
-var CACHE_NAME = "utzline-viewer-cache-v47";
+//
+// v49 (2026-09-26, kept in lockstep with the editor's own version number):
+// family-wide status icon revert (schema §4) -- machined: 🪚 -> ⚙️;
+// in_manufacture: 🔨 -> 🏭, in both joineryStatusIcon and joineryDisplayIcon
+// (rebuilt from the same source.html as the editor, see that app's own v49
+// entry). No other file/format change; CACHE_NAME bumped.
+//
+// v50 (2026-09-26, kept in lockstep with the editor's own version number):
+// NEXT_RUN_NOTES.md item 1 -- right-click/long-press context menu
+// (showLockPopover) restyled to match Install ITP's own centered-modal look
+// (rebuilt from the same source.html as the editor, see that app's own v50
+// entry). Same row content for this app's own room-marker menu (Open check
+// measure, Add job note, View shop drawing), just the new look plus a
+// trailing Cancel row; class names unchanged so existing selectors still
+// match. No other file/format change; CACHE_NAME bumped.
+var CACHE_NAME = "utzline-viewer-cache-v50";
 var ICON_VERSION = CACHE_NAME.replace("utzline-viewer-cache-", "");
 
 var PRECACHE_URLS = [
