@@ -402,7 +402,40 @@
 // measure, Add job note, View shop drawing), just the new look plus a
 // trailing Cancel row; class names unchanged so existing selectors still
 // match. No other file/format change; CACHE_NAME bumped.
-var CACHE_NAME = "utzline-viewer-cache-v50";
+// v51 (2026-09-27, kept in lockstep with the editor's own version number):
+// read-only "Company logo" preview added to the Projects screen (gateList)
+// -- rebuilt from the same source.html as the editor, see that app's own
+// v51 entry for the full writeup. Same read-only thumbnail here too, no
+// upload/remove controls (this app never had any Projects-write UI to
+// begin with). No other file/format change; CACHE_NAME bumped.
+// v52 (2026-09-27, kept in lockstep with the editor's own version number):
+// "Viewer fixes" queue item -- rebuilt from the same source.html as the
+// editor, see that app's own v52 entry for the full writeup. All 5 items
+// apply to this app directly (it's the one most of them were dictated
+// about): all overlay layers already default to visible (no change
+// needed, verified); "Open check measure" now hidden when nothing's been
+// saved for an item yet (this app's own gating -- Site Measure keeps it
+// unconditional so it can start the first one); new read-only "View
+// rework" button (per item) and menu entry (per project); the two layers
+// panels no longer overlap; foreign-layer photos no longer look
+// double-dimmed. No other file/format change; CACHE_NAME bumped.
+// v53 (2026-09-27, kept in lockstep with the editor's own version number):
+// "Sub orders" summary + write-back on the joinery item dialog -- rebuilt
+// from the same source.html as the editor, see that app's own v53 entry
+// for the full writeup. Applies identically here, INCLUDING THE WRITE
+// PATH: "mark as received" is deliberately allowed in this app too (a
+// procurement/status update, not a measurement edit; Andrew's request
+// said "ALL joinery summary pages" with no Viewer carve-out), via the
+// same narrowly-scoped ensureProjectWritePermission() upgrade "Add job
+// note" already established -- every other write in the file stays
+// exactly as blocked as before. No other file/format change; CACHE_NAME
+// bumped.
+// v53 speed fix (same build, 2026-09-27): "site measure app is really
+// slow again" -- v52's View rework gate walked Install ITP's rework folder
+// on every joinery item dialog open (uncached misses on Android). Now one
+// background listing per status scan decides whether an item has a
+// rework file; a dialog open reads nothing otherwise.
+var CACHE_NAME = "utzline-viewer-cache-v53";
 var ICON_VERSION = CACHE_NAME.replace("utzline-viewer-cache-", "");
 
 var PRECACHE_URLS = [
