@@ -3,10 +3,10 @@
 <meta charset="utf-8">
 <title>UTZLINE Viewer</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="manifest" href="./manifest.json?v=v56">
+<link rel="manifest" href="./manifest.json?v=v47">
 <meta name="theme-color" content="#16283a">
-<link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png?v=v56">
-<link rel="apple-touch-icon" href="./icons/icon-192.png?v=v56">
+<link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png?v=v47">
+<link rel="apple-touch-icon" href="./icons/icon-192.png?v=v47">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -67,11 +67,6 @@
     --accent-soft:#f4ded8;
     --shadow:0 2px 10px rgba(20,26,24,0.12), 0 1px 2px rgba(20,26,24,0.08);
     --focus:#1e5f8c;
-    /* 2026-09-27, "View rework" button -- deliberately a different red from
-       --accent above (this app's own brand color is already a red/orange,
-       so reusing --accent here wouldn't read as a distinct "this item has
-       an open rework" flag). */
-    --danger:#b91c1c;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -87,7 +82,6 @@
       --accent-soft:#3a241c;
       --shadow:0 2px 14px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.3);
       --focus:#6bb3e0;
-      --danger:#f87171;
     }
   }
   :root[data-theme="dark"]{
@@ -100,7 +94,6 @@
     --text-secondary:#98a4a0;
     --accent:#ff6a3d;
     --accent-ink:#ffb199;
-    --danger:#f87171;
     --accent-soft:#3a241c;
     --shadow:0 2px 14px rgba(0,0,0,0.45), 0 1px 2px rgba(0,0,0,0.3);
     --focus:#6bb3e0;
@@ -461,15 +454,6 @@
     width:230px; max-height:min(70vh, 520px);
     display:flex; flex-direction:column;
   }
-  /* 2026-09-27 -- Andrew, verbatim: "site measure layers sits ontop of the
-     other layer card also when both open. put site measure layers on left
-     of page and layers on the right." Both panels previously shared the
-     exact same top:12px/right:12px position (the shared .layers-panel rule
-     above), so opening both at once stacked them in the same corner.
-     #overlayLayersPanel ("Site Measure layers" -- other people's saved
-     check-measure layers) now docks LEFT; #layersPanel (the Objects/Layers
-     list) stays put on the RIGHT -- both can be open together now. */
-  #overlayLayersPanel{ left:12px; right:auto; }
   .layers-head{
     display:flex; align-items:center; justify-content:space-between;
     padding:9px 10px; border-bottom:1px solid var(--border);
@@ -554,54 +538,20 @@
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
-  /* ---------- lock/unlock/edit popover (right-click / long-press on an item) ----------
-     RESTYLED (2026-09-26, NEXT_RUN_NOTES.md item 1) to match Install ITP's
-     own #markerMenuBackdrop pattern: a centered modal with a dimmed
-     backdrop and full-width pill-shaped rows, instead of the old small
-     floating icon-row popup anchored right at the click point. Applies
-     generically to every object type's popover (roomlink, text, callout,
-     dimension, angle, image, base photo) -- this only changes the LOOK,
-     not showLockPopover's own row-building logic (popoverRow(), the row
-     list per object type) below, which is untouched.
-     Class names (.lock-popover-wrap, .lock-popover) are deliberately KEPT
-     UNCHANGED from the old floating-popup version -- only what they render
-     as changes -- so every existing regression test that finds a row via
-     `.lock-popover`/reads its label via `.lock-popover span` keeps working
-     unmodified. */
+  /* ---------- lock/unlock/edit popover (right-click / long-press on an item) ---------- */
   .lock-popover-wrap{
-    position:absolute; inset:0; z-index:35;
-    background:rgba(0,0,0,.38);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .lock-popover-box{
-    background:var(--surface-1); border:1px solid var(--border-strong); border-radius:10px;
-    box-shadow:var(--shadow); padding:18px 20px; max-width:300px; width:calc(100% - 40px);
-    display:flex; flex-direction:column; gap:8px;
-  }
-  .lock-popover-title{
-    font-weight:700; font-size:14px; text-align:center; margin:0 0 4px; color:var(--text-primary);
+    position:absolute; z-index:35;
+    display:flex; flex-direction:column; gap:4px;
+    transform:translate(-50%, calc(-100% - 10px));
   }
   .lock-popover{
-    display:flex; align-items:center; gap:8px;
-    width:100%; box-sizing:border-box;
-    background:var(--surface-2); color:var(--text-primary);
-    border:1px solid var(--border-strong);
-    padding:10px 14px; border-radius:8px; font-size:13.5px; font-weight:500;
-    cursor:pointer; white-space:nowrap; user-select:none;
+    display:flex; align-items:center; gap:6px;
+    background:var(--text-primary); color:var(--surface-1);
+    padding:7px 12px; border-radius:7px; font-size:12.5px; font-weight:500;
+    box-shadow:var(--shadow); cursor:pointer; white-space:nowrap; user-select:none;
   }
-  .lock-popover:hover{ background:var(--surface-0); }
-  .lock-popover svg{ width:15px; height:15px; flex:none; }
-  /* The single most relevant action for whatever's selected (the first row
-     showLockPopover builds) gets the same accent treatment as the app's
-     other primary buttons (.mbtn-accent) -- matching Install ITP's own
-     single green "Open ITP" row. Every other row, including Cancel, stays
-     the plain neutral pill above; there's no rework-style destructive row
-     left in this popover any more (removed 2026-09-24), so no red variant
-     is needed here. */
-  .lock-popover.lock-popover-accent{ background:var(--accent); border-color:var(--accent-ink); color:#fff; }
-  .lock-popover.lock-popover-accent:hover{ background:var(--accent-ink); }
-  /* (v55) "View rework" moved onto this menu -- red text, same as the old button. */
-  .lock-popover .popover-rework-label{ color:var(--danger); font-weight:600; }
+  .lock-popover:hover{ filter:brightness(0.85); }
+  .lock-popover svg{ width:13px; height:13px; flex:none; }
 
   /* ---------- confirm dialog (artifact sandboxes block window.confirm, so
      this is a real in-page dialog rather than the native one) ---------- */
@@ -682,12 +632,6 @@
   .mbtn:hover{ background:var(--surface-0); }
   .mbtn-accent{ background:var(--accent); border-color:var(--accent-ink); color:#fff; }
   .mbtn-accent:hover{ background:var(--accent-ink); }
-  /* "View rework" (2026-09-27) -- Andrew, verbatim: "add a view rework
-     button if a joinery item has a rework, make the text red on this
-     button." Plain (unfilled) button, red text/border -- see rework
-     reading functions further down for what "has a rework" means here. */
-  .mbtn-rework{ color:var(--danger); border-color:var(--danger); font-weight:600; }
-  .mbtn-rework:hover{ background:var(--danger); color:#fff; }
   /* ---- shared name+PIN identity (2026-09-23) -- see #identityGateRow's
      own HTML comment for the full "why". identitySelector IS the button
      (a native <select> styled like every other .mbtn here); numberpadShake
@@ -713,23 +657,6 @@
   .project-gate p b{ color:var(--text-primary); }
   .project-gate-actions{ display:flex; flex-direction:column; gap:10px; }
   .project-gate-error{ color:var(--accent-ink) !important; }
-  /* Read-only "Company logo" preview (2026-09-27) -- Andrew, verbatim:
-     "change company logo should only be visable in the projects app, in
-     every other app it should load the one chosen in projects." Site
-     Measure/Viewer never had a logo display before now; this just shows
-     whatever UTZLINE Projects has set (company-logo.png at the Projects
-     root), with no upload/remove controls -- see readCompanyLogoReadOnly()/
-     refreshCompanyLogoPreview() further down. */
-  .company-logo-row{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
-  .company-logo-preview{
-    width: 56px; height: 56px; border-radius: 10px;
-    background: var(--surface-2); border: 1px solid var(--border);
-    display:flex; align-items:center; justify-content:center;
-    overflow: hidden; flex: 0 0 auto;
-  }
-  .company-logo-preview img{ max-width: 100%; max-height: 100%; }
-  .company-logo-preview .placeholder{ color: var(--text-secondary); font-size: 10px; text-align:center; }
-  .company-logo-label{ font-size: 13px; color: var(--text-secondary); }
   .project-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:14px; max-height:46vh; overflow-y:auto; }
   .project-row{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -847,16 +774,6 @@
   }
   .jobnote-row-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .jobnote-empty{ font-size:13px; color:var(--text-secondary); padding:8px 2px 14px; }
-
-  /* ---------- "View rework" read-only list (2026-09-27) ---------- */
-  .rework-view-list{ display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto; margin-bottom:14px; }
-  .rework-view-row{
-    padding:10px 12px; border-radius:8px; border:1px solid var(--danger);
-    background:var(--surface-2); font-size:12.5px;
-  }
-  .rework-view-detail{ color:var(--text-primary); margin-bottom:3px; }
-  .rework-view-meta{ color:var(--text-secondary); font-size:11.5px; }
-  .rework-view-loc{ font-weight:600; margin-bottom:2px; }
 
   /* ---------- Shop drawing dialogs (2026-09-23) ----------
      Reuses every jobnote-* class above unchanged (same dropzone/list/empty-
@@ -992,7 +909,6 @@
     .end-toggle input{width:20px; height:20px;}
     .status{font-size:10px;}
     .layers-panel{width:min(240px, calc(100vw - 16px)); right:8px; top:8px; max-height:60vh;}
-    #overlayLayersPanel{ left:8px; right:auto; }
 
     /* Phone toolbar: the two-fixed-rows layout (file/plan actions on top,
        drawing tools below, each independently side-scrolling) is now the
@@ -1532,15 +1448,9 @@
 
         <div id="gateList" hidden>
           <p id="gateListFolderLabel"></p>
-          <div class="company-logo-row" id="companyLogoRow">
-            <div class="company-logo-preview" id="companyLogoPreviewBox"><span class="placeholder">No logo</span></div>
-            <div class="company-logo-label">Company logo — set in the UTZLINE Projects app.</div>
-          </div>
           <div class="project-list" id="projectListItems"></div>
           <div class="project-gate-actions">
             <button class="mbtn" id="switchProjectsRootBtn">Use a Different Projects Folder</button>
-            <!-- (v56) On-device timings for "Open check measure" -- see cmPerfStart. -->
-            <button class="mbtn" id="cmTimingsBtn">⏱ Timings</button>
           </div>
         </div>
 
@@ -1559,11 +1469,6 @@
           <div class="project-list" id="levelListItems"></div>
           <div class="project-gate-actions">
             <button class="mbtn" id="exportAllProjectPdfsBtn" title="Re-renders and saves a fresh PDF for every level's own main plan AND every room under every level in this project, straight into each one's own pdfs folder — without opening each one by hand first.">Export all PDFs (whole project)</button>
-            <!-- 2026-09-27 -- Andrew, verbatim: "also add this to the main
-                 menu for a project." Read-only: lists every OPEN rework
-                 entry anywhere in this project (Install ITP's own data,
-                 read but never written here). -->
-            <button class="mbtn mbtn-rework" id="viewProjectReworkBtn" title="Lists every open (not-yet-closed) rework logged against any joinery item anywhere in this project.">View rework</button>
           </div>
         </div>
 
@@ -1761,45 +1666,14 @@
          work before joinery items existed as their own concept. Once
          there, the ordinary toolbar (Insert image included) works exactly
          as it does anywhere else in the app. -->
-    <!-- "View rework" (2026-09-27, read-only) -- a plain list of this
-         item's OPEN rework entries (or, from the project-level menu, every
-         item's open reworks across the whole project). Site Measure/Viewer
-         never edit rework data -- that's Install ITP's (and Delivery ITP's)
-         job; this is purely a read-only viewer, reusing the shared rework
-         file both those apps already read/write. See readItemReworkEntries/
-         listAllProjectOpenReworks further down. -->
-    <!-- (v56) "⏱ Timings": how long each recent Open check measure took on
-         THIS device, step by step -- so a slow open on the tablet can be
-         screenshotted and pinned to the exact step, not guessed at. -->
-    <div class="modal-backdrop" id="cmTimingsBackdrop" hidden>
-      <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="cmTimingsTitle">
-        <p id="cmTimingsTitle" class="joinery-item-title">Open check measure — timings on this device</p>
-        <div class="rework-view-list" id="cmTimingsList"></div>
-        <div class="modal-actions">
-          <button class="mbtn" id="cmTimingsCloseBtn">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-backdrop" id="reworkViewBackdrop" hidden>
-      <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="reworkViewTitle">
-        <p id="reworkViewTitle" class="joinery-item-title">Rework</p>
-        <div class="rework-view-list" id="reworkViewList"></div>
-        <div class="modal-actions">
-          <button class="mbtn" id="reworkViewCloseBtn">Close</button>
-        </div>
-      </div>
-    </div>
-
     <div class="modal-backdrop" id="joineryItemBackdrop" hidden>
       <div class="modal-box joinery-item-box" role="dialog" aria-modal="true" aria-labelledby="joineryItemTitle">
         <p id="joineryItemTitle" class="joinery-item-title">Joinery Item</p>
         <p id="joineryItemSubtitle" class="joinery-item-subtitle"></p>
         <div class="modal-actions">
           <button class="mbtn" id="joineryItemOpenRoomBtn" style="display:none;">Open this room's own plan</button>
-          <button class="mbtn mbtn-rework" id="joineryItemViewReworkBtn" style="display:none;">View rework</button>
           <button class="mbtn" id="joineryItemCloseBtn">Close</button>
-          <button class="mbtn mbtn-accent" id="joineryItemOpenPageBtn">Open check measure</button>
+          <button class="mbtn mbtn-accent" id="joineryItemOpenPageBtn">Open joinery item</button>
         </div>
       </div>
     </div>
@@ -1974,7 +1848,7 @@
   // view with the other still offered as a toggleable reference layer and
   // a badge reading "1" -- exactly as next-version-notes.md's "Shipped in
   // v45.0" section always described.
-  var APP_VERSION = "v56";
+  var APP_VERSION = "v47";
   // Read-only "viewer" mode -- a distinct standalone build (own manifest,
   // own icon/name -- see the viewer PWA's start_url) for the drafting
   // office to browse projects/levels/rooms without any ability to edit,
@@ -2494,9 +2368,8 @@
   // onPointerDown select-tool branch's own comment for the full bug report
   // and reasoning (it silently broke the intended background/images/
   // annotations tiering and wasn't needed for anything visual). z-order now
-  // only ever changes via the deliberate "Send to back" popover action (see
-  // showLockPopover) -- its own former "Bring to front" counterpart was
-  // removed 2026-09-26, per Andrew.
+  // only ever changes via the deliberate "Bring to front"/"Send to back"
+  // popover actions (see showLockPopover).
   // durationMs lets a rarer, longer, more important message (a save that
   // may have silently gone wrong, say) stay up long enough to actually
   // read -- every existing call just omits it and keeps the same 2400ms
@@ -3745,304 +3618,6 @@
     });
   }
 
-  /* ---- Rework (read-only, 2026-09-27) ----
-     Andrew, verbatim: "add a view rework button if a joinery item has a
-     rework, make the text red on this button. also add this to the main
-     menu for a project." Site Measure/Viewer have never read rework data
-     before -- reworks are logged and managed entirely in Install ITP (and
-     shared with Delivery ITP since NEXT_RUN_NOTES.md item 9), stored per
-     item at:
-       FLAT project:   <Project>/Project Saves/UTZLINE ITP/Install ITP Rework/<Level> - <Room> - <Code>.json
-       LEGACY project: <Project>/itp-install-rework/<Level>/<Room>/<Code>.json
-     This app only ever READS this file -- never creates, writes, or
-     migrates it (every getDirectoryHandle/getFileHandle call below passes
-     create:false). "Has a rework", for the red-button/menu-entry purposes
-     here, means has at least one OPEN entry (entry.closed is falsy) --
-     matching Install ITP's own "Outstanding reworks" page semantics
-     (listAllOpenReworks there), not "has ever had any rework logged". */
-  function reworkFileNameFor(levelName, roomName, joineryCode, isFlat){
-    return isFlat
-      ? sanitizeFileBase(levelName) + " - " + sanitizeFileBase(roomName) + " - " + sanitizeFileBase(joineryCode) + ".json"
-      : sanitizeFileBase(joineryCode) + ".json";
-  }
-  function getReworkDirFlatReadOnly(projectHandle){
-    return projectHandle.getDirectoryHandle("Project Saves", { create: false }).then(function(psH){
-      return psH.getDirectoryHandle("UTZLINE ITP", { create: false });
-    }).then(function(branchH){
-      return branchH.getDirectoryHandle("Install ITP Rework", { create: false });
-    });
-  }
-  function getReworkDirLegacyReadOnly(projectHandle, levelName, roomName){
-    return projectHandle.getDirectoryHandle("itp-install-rework", { create: false }).then(function(h){
-      return h.getDirectoryHandle(levelName, { create: false });
-    }).then(function(levelH){
-      return levelH.getDirectoryHandle(roomName, { create: false });
-    });
-  }
-  // Resolves to the parsed reworks[] array for one item (empty on any
-  // read error -- no folder yet, no file for this item, unreadable, etc).
-  function readItemReworkEntries(projectHandle, levelName, roomName, joineryCode, isFlat){
-    if (!projectHandle) return Promise.resolve([]);
-    var fileName = reworkFileNameFor(levelName, roomName, joineryCode, isFlat);
-    var dirPromise = isFlat
-      ? getReworkDirFlatReadOnly(projectHandle)
-      : getReworkDirLegacyReadOnly(projectHandle, levelName, roomName);
-    return dirPromise.then(function(dirH){
-      return dirH.getFileHandle(fileName, { create: false });
-    }).then(function(fh){
-      return fh.getFile();
-    }).then(function(file){
-      return file.text();
-    }).then(function(text){
-      var data = null;
-      try{ data = JSON.parse(text); }catch(e){ data = null; }
-      return (data && Array.isArray(data.reworks)) ? data.reworks : [];
-    }, function(){ return []; });
-  }
-  function openReworkEntriesOf(entries){
-    return (entries || []).filter(function(e){ return e && !e.closed; });
-  }
-  /* (v53, speed -- 2026-09-27) Andrew, the same day v52 shipped: "site
-     measure app is really slow again, we fixed it yesterday but something
-     you did today has brought back all the slow downs." v52's "View rework"
-     gate was the one piece of per-tap file I/O added today: EVERY joinery
-     item dialog open walked Project Saves/UTZLINE ITP/Install ITP Rework
-     (or itp-install-rework/<Level>/<Room>) with uncached create:false
-     lookups -- 3-4 serialized storage calls per tap, and on the common
-     project with no rework folder at all, every one of them a MISS, which
-     is the slowest kind of lookup on Android's storage layer (the exact
-     cost the v46 speed round removed everywhere else, and the same trap
-     all three ITP apps' sub-orders work hit today). Same fix as v46's
-     "View shop drawing" gate: one background listing of which items have
-     a rework file at all, refreshed alongside the status scan (3-min TTL,
-     IndexedDB snapshot for an instant first paint), so a dialog open reads
-     nothing unless THIS item actually has a rework file. Keys are
-     "F\0<flat file name>" or "L\0<level>\0<room>\0<file name>". */
-  var reworkFileKeySet = null; // null = not scanned yet (fail open: read as before)
-  var viewerOverlayExistsMemo = {}; // Viewer only: "<project>\0<item key>" -> {at, has}
-  /* (v54) Andrew: "in site measure app, if there is no check measure yet,
-     the button should say add check measure." An item has a check measure
-     once anyone has saved (or autosaved a draft of) one -- i.e. it has its
-     own folder under Project Saves/Site Measures (those folders are only
-     ever created by writeJoineryDraft/writeJoineryOverlay). One listing of
-     that folder rides the same background status scan as the rework set
-     (3-min freshness + IndexedDB snapshot), so labelling a button never
-     costs a file lookup per tap on a 4 GB tablet. Unknown (null) reads as
-     "has one" -- the old "Open check measure" wording. */
-  var checkMeasureKeySet = null;
-  function listCheckMeasureKeys(projectHandle){
-    if (!projectHandle) return Promise.resolve([]);
-    return getSiteMeasuresDir(projectHandle, false).then(listSubdirNames, function(){ return []; }).catch(function(){ return []; });
-  }
-  function checkMeasureKnownMissing(obj){
-    return !!(checkMeasureKeySet && obj && !checkMeasureKeySet.has(resolveJoineryItemPageKey(activeLevelName, obj)));
-  }
-  function checkMeasureActionLabel(obj){
-    if (VIEW_ONLY_MODE || !checkMeasureKeySet || !obj) return "Open check measure";
-    return checkMeasureKeySet.has(resolveJoineryItemPageKey(activeLevelName, obj)) ? "Open check measure" : "Add check measure";
-  }
-  function reworkSetKey(levelName, roomName, joineryCode, isFlat){
-    var fileName = reworkFileNameFor(levelName, roomName, joineryCode, isFlat);
-    return isFlat ? "F\u0000" + fileName : "L\u0000" + (levelName || "") + "\u0000" + (roomName || "") + "\u0000" + fileName;
-  }
-  function listJsonFileNamesIn(dirH){
-    var names = [];
-    var iter = dirH.values();
-    function step(){
-      return iter.next().then(function(res){
-        if (res.done) return names;
-        if (res.value && res.value.kind === "file" && /\.json$/i.test(res.value.name)) names.push(res.value.name);
-        return step();
-      });
-    }
-    return step();
-  }
-  function listReworkFileKeys(projectHandle){
-    if (!projectHandle) return Promise.resolve([]);
-    var keys = [];
-    var flatP = getReworkDirFlatReadOnly(projectHandle).then(listJsonFileNamesIn).then(function(names){
-      names.forEach(function(n){ keys.push("F\u0000" + n); });
-    }, function(){});
-    var legacyP = projectHandle.getDirectoryHandle("itp-install-rework", { create: false }).then(function(rootH){
-      return listSubdirNames(rootH).then(function(levels){
-        return Promise.all(levels.map(function(lv){
-          return rootH.getDirectoryHandle(lv, { create: false }).then(function(lvH){
-            return listSubdirNames(lvH).then(function(rooms){
-              return Promise.all(rooms.map(function(rm){
-                return lvH.getDirectoryHandle(rm, { create: false }).then(listJsonFileNamesIn).then(function(names){
-                  names.forEach(function(n){ keys.push("L\u0000" + lv + "\u0000" + rm + "\u0000" + n); });
-                }, function(){});
-              }));
-            });
-          }, function(){});
-        }));
-      });
-    }, function(){});
-    return Promise.all([flatP, legacyP]).then(function(){ return keys; });
-  }
-  function itemMayHaveReworkFile(levelName, roomName, joineryCode, isFlat){
-    if (!reworkFileKeySet) return true;
-    return reworkFileKeySet.has(reworkSetKey(levelName, roomName, joineryCode, isFlat));
-  }
-  function formatReworkDate(iso){
-    if (!iso) return "";
-    var d = new Date(iso);
-    return isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-  }
-  var reworkViewBackdrop = document.getElementById("reworkViewBackdrop");
-  var reworkViewTitleEl = document.getElementById("reworkViewTitle");
-  var reworkViewListEl = document.getElementById("reworkViewList");
-  function closeReworkView(){ reworkViewBackdrop.hidden = true; }
-  document.getElementById("reworkViewCloseBtn").addEventListener("click", closeReworkView);
-  reworkViewBackdrop.addEventListener("click", function(e){ if (e.target === reworkViewBackdrop) closeReworkView(); });
-  // rows: [{ loc: "L1 — Room 101 — J-1" (omit for a single-item view),
-  //          cabinetNumber, text, createdAt, createdBy }]
-  function renderReworkViewRows(rows, emptyText){
-    reworkViewListEl.innerHTML = "";
-    if (!rows.length){
-      reworkViewListEl.innerHTML = "<p class=\"jobnote-empty\">" + emptyText + "</p>";
-      return;
-    }
-    rows.forEach(function(r){
-      var row = document.createElement("div");
-      row.className = "rework-view-row";
-      if (r.loc){
-        var locEl = document.createElement("div");
-        locEl.className = "rework-view-loc";
-        locEl.textContent = r.loc;
-        row.appendChild(locEl);
-      }
-      var detailEl = document.createElement("div");
-      detailEl.className = "rework-view-detail";
-      detailEl.textContent = (r.cabinetNumber ? ("Cabinet " + r.cabinetNumber + " — ") : "") + (r.text || "(no detail entered)");
-      row.appendChild(detailEl);
-      var metaEl = document.createElement("div");
-      metaEl.className = "rework-view-meta";
-      var loggedBits = [];
-      if (r.createdBy) loggedBits.push("by " + r.createdBy);
-      var loggedDate = formatReworkDate(r.createdAt);
-      if (loggedDate) loggedBits.push(loggedDate);
-      metaEl.textContent = "Logged" + (loggedBits.length ? " " + loggedBits.join(" — ") : "");
-      row.appendChild(metaEl);
-      reworkViewListEl.appendChild(row);
-    });
-  }
-  function openReworkViewForItem(title, entries){
-    reworkViewTitleEl.textContent = title;
-    renderReworkViewRows(openReworkEntriesOf(entries).map(function(e){
-      return { cabinetNumber: e.cabinetNumber, text: e.text, createdAt: e.createdAt, createdBy: e.createdBy };
-    }), "No open rework for this item.");
-    reworkViewBackdrop.hidden = false;
-  }
-  // Project-wide scan for the "View rework" main-menu entry -- mirrors
-  // Install ITP's own listAllOpenReworks() (same flat/legacy folder shapes),
-  // but read-only and without that app's joinery-items.json level/room
-  // lookup fallback (this app already has level/room from the folder
-  // structure itself for a legacy project's own tree walk; a flat
-  // project's file NAME already carries level/room, so no extra lookup is
-  // needed either way).
-  function listAllProjectOpenReworksReadOnly(projectHandle, isFlat){
-    if (!projectHandle) return Promise.resolve([]);
-    function fileToRows(fileHandle, level, room, code){
-      return fileHandle.getFile().then(function(file){ return file.text(); }).then(function(text){
-        var data = null;
-        try{ data = JSON.parse(text); }catch(e){ data = null; }
-        var entries = (data && Array.isArray(data.reworks)) ? data.reworks : [];
-        return openReworkEntriesOf(entries).map(function(e){
-          return { loc: [level, room, code].filter(Boolean).join(" — "), cabinetNumber: e.cabinetNumber, text: e.text, createdAt: e.createdAt, createdBy: e.createdBy };
-        });
-      }, function(){ return []; });
-    }
-    if (isFlat){
-      return getReworkDirFlatReadOnly(projectHandle).then(function(dirH){
-        var out = [];
-        var iter = dirH.values();
-        function step(){
-          return iter.next().then(function(res){
-            if (res.done) return out;
-            if (res.value && res.value.kind === "file" && /\.json$/i.test(res.value.name)){
-              // Flat filenames are "<Level> - <Room> - <Code>.json" -- best-
-              // effort split back into level/room/code for display; if a
-              // name doesn't fit the pattern (shouldn't happen), just show
-              // the filename itself rather than failing the whole scan.
-              var base = res.value.name.replace(/\.json$/i, "");
-              var parts = base.split(" - ");
-              var level = parts.length >= 3 ? parts[0] : "";
-              var room = parts.length >= 3 ? parts[1] : "";
-              var code = parts.length >= 3 ? parts.slice(2).join(" - ") : base;
-              return fileToRows(res.value, level, room, code).then(function(rows){
-                out.push.apply(out, rows);
-                return step();
-              });
-            }
-            return step();
-          });
-        }
-        return step();
-      }, function(){ return []; });
-    }
-    return projectHandle.getDirectoryHandle("itp-install-rework", { create: false }).then(function(rootH){
-      var levelIter = rootH.values();
-      var levelDirs = [];
-      function collectLevels(){
-        return levelIter.next().then(function(res){
-          if (res.done) return levelDirs;
-          if (res.value && res.value.kind === "directory") levelDirs.push(res.value);
-          return collectLevels();
-        });
-      }
-      return collectLevels();
-    }, function(){ return []; }).then(function(levelDirs){
-      return Promise.all(levelDirs.map(function(levelH){
-        var roomIter = levelH.values();
-        var roomDirs = [];
-        function collectRooms(){
-          return roomIter.next().then(function(res){
-            if (res.done) return roomDirs;
-            if (res.value && res.value.kind === "directory") roomDirs.push(res.value);
-            return collectRooms();
-          });
-        }
-        return collectRooms().then(function(rooms){
-          return Promise.all(rooms.map(function(roomH){
-            var fileIter = roomH.values();
-            var out = [];
-            function step(){
-              return fileIter.next().then(function(res){
-                if (res.done) return out;
-                if (res.value && res.value.kind === "file" && /\.json$/i.test(res.value.name)){
-                  var code = res.value.name.replace(/\.json$/i, "");
-                  return fileToRows(res.value, levelH.name, roomH.name, code).then(function(rows){
-                    out.push.apply(out, rows);
-                    return step();
-                  });
-                }
-                return step();
-              });
-            }
-            return step();
-          }));
-        });
-      })).then(function(perRoom){
-        var all = [];
-        perRoom.forEach(function(perLevel){ perLevel.forEach(function(rows){ all.push.apply(all, rows); }); });
-        return all;
-      });
-    });
-  }
-  function openReworkViewForProject(){
-    reworkViewTitleEl.textContent = "Open reworks — " + activeProjectName;
-    reworkViewListEl.innerHTML = "<p class=\"jobnote-empty\">Loading…</p>";
-    reworkViewBackdrop.hidden = false;
-    isFlatProject(activeProjectHandle).then(function(isFlat){
-      return listAllProjectOpenReworksReadOnly(activeProjectHandle, isFlat);
-    }).then(function(rows){
-      renderReworkViewRows(rows, "No open reworks anywhere in this project.");
-    }).catch(function(){
-      renderReworkViewRows([], "Couldn't read rework data — try again.");
-    });
-  }
-
   /* ---- Job notes (2026-09-22) ----
      Andrew's follow-up once the Viewer's read-only guarantee ruled out a
      bare "mark as check measured" tap there: "allow a job note to be added
@@ -4060,40 +3635,12 @@
      project-root folder regardless of shape (see getSiteMeasuresDir's own
      comment), nothing shape-specific here at all. */
   function jobNotesBranchName(){ return "Job Notes"; }
-  // (v55, speed) Andrew: "pressing open job note takes ages also to bring
-  // up the job note selector". The "Project Saves/Job Notes" folder handle
-  // is now remembered per project (a handle stays valid while the folder
-  // exists; dropped the moment anything through it fails), so opening the
-  // list is one lookup + one listing instead of three lookups + a listing.
-  var jobNotesBranchMemo = { project: null, handle: null };
-  function getJobNotesBranchDir(projectHandle, create){
-    if (jobNotesBranchMemo.project === projectHandle && jobNotesBranchMemo.handle) return Promise.resolve(jobNotesBranchMemo.handle);
+  function getJobNotesDirForItem(projectHandle, key, create){
     return projectHandle.getDirectoryHandle(projectSavesDirName(), { create: !!create }).then(function(psH){
       return psH.getDirectoryHandle(jobNotesBranchName(), { create: !!create });
     }).then(function(jnH){
-      jobNotesBranchMemo = { project: projectHandle, handle: jnH };
-      return jnH;
-    });
-  }
-  function getJobNotesDirForItem(projectHandle, key, create){
-    return getJobNotesBranchDir(projectHandle, create).then(function(jnH){
       return jnH.getDirectoryHandle(key, { create: !!create });
-    }, function(err){ jobNotesBranchMemo = { project: null, handle: null }; throw err; });
-  }
-  // ...and the list itself is started the moment the long-press menu shows
-  // a "View job note" row, so it's usually ready by the time it's tapped.
-  var jobNotesPrefetch = { key: null, project: null, at: 0, promise: null };
-  function prefetchJobNotes(key){
-    jobNotesPrefetch = { key: key, project: activeProjectHandle, at: Date.now(), promise: listJobNotes(activeProjectHandle, key) };
-    jobNotesPrefetch.promise.catch(function(){});
-  }
-  function takeJobNotesList(key){
-    var p = jobNotesPrefetch;
-    if (p.promise && p.key === key && p.project === activeProjectHandle && (Date.now() - p.at) < 60000){
-      jobNotesPrefetch = { key: null, project: null, at: 0, promise: null };
-      return p.promise;
-    }
-    return listJobNotes(activeProjectHandle, key);
+    });
   }
   // Changed 2026-09-23: Andrew, verbatim, on browsing this folder in a file
   // manager: "dont want job notes to have this format at the start on the
@@ -4390,7 +3937,6 @@
   }
   function writeJoineryDraft(projectHandle, key, user, data){
     var payload = JSON.stringify(data);
-    if (checkMeasureKeySet) checkMeasureKeySet.add(key); // (v54) now "Open", not "Add"
     return getJoineryDraftsDir(projectHandle, key, true).then(function(dirH){
       return dirH.getFileHandle(joineryDraftFileName(user), { create: true });
     }).then(function(fh){
@@ -4417,7 +3963,6 @@
   function writeJoineryOverlay(projectHandle, key, user, data){
     var stamp = overlayTimestampStamp();
     var payload = JSON.stringify(data);
-    if (checkMeasureKeySet) checkMeasureKeySet.add(key); // (v54) now "Open", not "Add"
     return getJoineryOverlaysDir(projectHandle, key, true).then(function(dirH){
       return dirH.getFileHandle(joineryOverlayFileName(user, stamp), { create: true });
     }).then(function(fh){
@@ -4955,118 +4500,15 @@
   // page uses), only the one-tap "exactly where I left off" convenience --
   // a deliberately smaller gap than building full boot-restore support for
   // item pages too, which Andrew hasn't asked for.
-  /* (v56) Andrew: "open check measure still took upto a minute to open on
-     tablet. this was super fast last night." Desk-side, with Android's
-     one-at-a-time storage simulated, this build and last night's (v49)
-     make the same folder calls and open in the same time -- so the next
-     step is real numbers from the tablet itself. Every Open check measure
-     records how long each step took; "⏱ Timings" on the Projects screen
-     lists the last 10 (kept on this device only). */
-  var cmTimings = [];
-  try{ cmTimings = JSON.parse(localStorage.getItem("utzline-sm:cmTimings") || "[]") || []; }catch(e){ cmTimings = []; }
-  function cmPerfStart(label){
-    var rec = { label: label, at: new Date().toISOString(), t0: performance.now(), steps: [] };
-    rec.mark = function(name){ rec.steps.push({ name: name, ms: Math.round(performance.now() - rec.t0) }); };
-    rec.finish = function(){
-      var plain = { label: rec.label, at: rec.at, steps: rec.steps.slice() };
-      cmTimings = [plain].concat(cmTimings.filter(function(r){ return r !== plain; })).slice(0, 10);
-      try{ localStorage.setItem("utzline-sm:cmTimings", JSON.stringify(cmTimings)); }catch(e){}
-      rec.saved = plain;
-    };
-    rec.addLate = function(name){ // a step that finishes after the page is shown
-      rec.mark(name);
-      if (rec.saved){ rec.saved.steps = rec.steps.slice(); try{ localStorage.setItem("utzline-sm:cmTimings", JSON.stringify(cmTimings)); }catch(e){} }
-    };
-    return rec;
-  }
-  function renderCmTimings(){
-    var list = document.getElementById("cmTimingsList");
-    list.innerHTML = "";
-    if (!cmTimings.length){ list.innerHTML = "<p class=\"jobnote-empty\">No check measures opened on this device yet.</p>"; return; }
-    cmTimings.forEach(function(r){
-      var row = document.createElement("div"); row.className = "rework-view-row"; row.style.borderColor = "var(--border)";
-      var head = document.createElement("div"); head.className = "rework-view-loc";
-      var total = r.steps.length ? r.steps[r.steps.length - 1].ms : 0;
-      var shown = r.steps.filter(function(x){ return x.name === "page shown"; })[0];
-      head.textContent = r.label + " — page shown after " + (shown ? (shown.ms / 1000).toFixed(1) + " s" : "?") + (total !== (shown && shown.ms) ? ", everything done " + (total / 1000).toFixed(1) + " s" : "");
-      row.appendChild(head);
-      var prev = 0;
-      r.steps.forEach(function(x){
-        var line = document.createElement("div"); line.className = "rework-view-meta";
-        line.textContent = x.name + ": +" + ((x.ms - prev) / 1000).toFixed(1) + " s (at " + (x.ms / 1000).toFixed(1) + " s)";
-        prev = x.ms;
-        row.appendChild(line);
-      });
-      var when = document.createElement("div"); when.className = "rework-view-meta";
-      try{ when.textContent = new Date(r.at).toLocaleString(); }catch(e){}
-      row.appendChild(when);
-      list.appendChild(row);
-    });
-  }
-  (function(){
-    var b = document.getElementById("cmTimingsBtn"), bd = document.getElementById("cmTimingsBackdrop");
-    if (b) b.addEventListener("click", function(){ renderCmTimings(); bd.hidden = false; });
-    document.getElementById("cmTimingsCloseBtn").addEventListener("click", function(){ bd.hidden = true; });
-    bd.addEventListener("click", function(e){ if (e.target === bd) bd.hidden = true; });
-  })();
-
-  // (v54) Reads other people's saved layers for the item page that's open
-  // NOW, one file at a time, adding each as it lands and redrawing. Drops
-  // everything if the person has already left that page.
-  function loadOtherLayersInBackground(page, entries, perf){
-    var i = 0;
-    function next(){
-      if (activeJoineryItemPage !== page) return Promise.resolve();
-      if (i >= entries.length){ if (perf && entries.length) perf.addLate("other people's layers drawn (" + entries.length + ")"); return Promise.resolve(); }
-      var entry = entries[i++];
-      return readJsonFileHandle(entry.handle).then(function(data){
-        if (activeJoineryItemPage !== page) return;
-        page.layers.push({ user: entry.user, stamp: entry.stamp, fileName: entry.fileName, visible: true, objects: (data && data.objects) || [] });
-        renderOverlayLayers(); // (v56) appends just this layer -- see renderOverlayLayers
-        renderOverlayLayersPanel();
-      }, function(err){
-        console.warn("Couldn't read a saved layer (" + entry.fileName + "):", err);
-      }).then(next);
-    }
-    return next();
-  }
   function openJoineryItemPage(obj){
     if (!activeProjectHandle){
       showToast("Can't open a joinery item's own page without a known project — open this level from its project instead.");
       return Promise.resolve();
     }
-    // (v54, speed -- Andrew: "when you press open check measure it is very
-    // slow" / on Site Measure "pressing open check measure on the second
-    // popup does nothing") The first-open plan snapshot (2026-09-25) used
-    // to be rendered on EVERY open, before anything was known -- a full
-    // serialise + rasterise of the plan on a 4 GB tablet, thrown away
-    // whenever the item already had saved work (the common case), and able
-    // to throw synchronously on a big plan so the tap did nothing at all.
-    // Now: list this item's overlays + read my draft FIRST (reads this page
-    // needed anyway -- reused below, not repeated), still on the plan, and
-    // only render the snapshot when there's genuinely nothing of mine saved
-    // yet. It still has to be taken before leaving the plan, which is why
-    // this runs ahead of saveActiveWorkBeforeLeaving.
-    var perf = cmPerfStart([activeLevelName, obj.roomName, obj.joineryCode].filter(Boolean).join(" · "));
-    var preKey = resolveJoineryItemPageKey(activeLevelName, obj);
-    var wantSnapshot = !VIEW_ONLY_MODE && onLevelPlanNow() && firstOpenSnapshotMode !== "off";
-    var preloadP = Promise.all([
-      listJoineryOverlays(activeProjectHandle, preKey),
-      VIEW_ONLY_MODE ? Promise.resolve(null) : readJoineryDraft(activeProjectHandle, preKey, deviceUserName)
-    ]);
-    var firstOpenSnapshotP = preloadP.then(function(pre){
-      perf.mark("read this item's saved layers list + your draft");
-      if (!wantSnapshot || pre[1]) return null;
-      var mySlug = overlayUserSlug(deviceUserName);
-      var hasMine = pre[0].some(function(o){ return o.user === mySlug; });
-      return hasMine ? null : safeRenderPlanViewSnapshotForItem();
-    });
-    showToast("Opening check measure…");
-    return firstOpenSnapshotP.then(function(snap){
-      perf.mark(snap ? "plan snapshot made (first open)" : "no plan snapshot needed");
-      return saveActiveWorkBeforeLeaving();
-    }).then(function(){
-      perf.mark("level plan checked/saved before leaving");
+    // Captured BEFORE anything changes on screen (2026-09-25) -- only used
+    // if this turns out to be the item's very first open; see below.
+    var firstOpenSnapshotP = (!VIEW_ONLY_MODE && onLevelPlanNow()) ? renderPlanViewSnapshotForItem() : Promise.resolve(null);
+    return saveActiveWorkBeforeLeaving().then(function(){
       rememberLevelPlanForReturn(); // (2026-09-25) so Back lands on this exact view
       // Opening an item's page always means leaving any room behind too --
       // a room and a joinery item page are mutually exclusive, same as a
@@ -5089,18 +4531,15 @@
       // blank), plus every OTHER user's most recent permanent Save as a
       // toggleable reference layer. See the "Site Measure overlay layers"
       // comment above listJoineryOverlays for the full design.
-      // (v54) Overlays + draft come from the preload above (same key --
-      // activeLevelName can't change in between; re-read only if it did).
-      var sameKey = key === preKey;
       return Promise.all([
         getFlatPdfsDir(activeProjectHandle, create).catch(function(){ return null; }),
         getFlatBackupsDirForLevel(activeProjectHandle, key, create).catch(function(){ return null; }),
-        sameKey ? preloadP.then(function(pre){ return pre[0]; }) : listJoineryOverlays(activeProjectHandle, key),
+        listJoineryOverlays(activeProjectHandle, key),
         // The Viewer never has a device identity of its own worth reading a
         // draft for -- it never writes anything, ever (VIEW_ONLY_MODE), so
         // there's no "my own in-progress work" concept to load for it at
         // all; see the VIEW_ONLY_MODE branch just below.
-        VIEW_ONLY_MODE ? Promise.resolve(null) : (sameKey ? preloadP.then(function(pre){ return pre[1]; }) : readJoineryDraft(activeProjectHandle, key, deviceUserName))
+        VIEW_ONLY_MODE ? Promise.resolve(null) : readJoineryDraft(activeProjectHandle, key, deviceUserName)
       ]).then(function(results){
         var pdfsHandle = results[0], backupsHandle = results[1], overlays = results[2], ownDraft = results[3];
         // (v45.12, 2026-09-24) Andrew, verbatim, on why v45.11's fix still
@@ -5161,14 +4600,11 @@
         var otherEntries = overlays.filter(function(o){ return o !== baseEntry; }).sort(function(a, b){
           return (a.user + " \u0000 " + a.stamp).localeCompare(b.user + " \u0000 " + b.stamp);
         });
-        // (v54, speed) Other people's layers no longer hold the page back:
-        // each is a full JSON file (photos as base64 included), and with
-        // every Save kept as its own layer (v45.12) an item can have many.
-        // The page opens as soon as the base view is read; the layers are
-        // read one at a time afterwards (one file in memory being parsed
-        // at a time on a 4 GB tablet, not all at once) and drawn as they
-        // arrive -- still all visible by default (v52).
-        var pendingLayerEntries = otherEntries;
+        var otherLayersPromise = Promise.all(otherEntries.map(function(entry){
+          return readJsonFileHandle(entry.handle).then(function(data){
+            return { user: entry.user, stamp: entry.stamp, fileName: entry.fileName, visible: true, objects: (data && data.objects) || [] };
+          });
+        }));
         // My own draft (if any) always wins over my own last permanent
         // Save -- it's strictly newer work-in-progress by definition (a
         // draft only ever gets written AFTER whatever overlay preceded it,
@@ -5178,16 +4614,14 @@
         // read on the common "opened, Saved, came back later" path. Never
         // applies to the Viewer, which has no draft at all (see above).
         var basePromise = ownDraft ? Promise.resolve(null) : (baseEntry ? readJsonFileHandle(baseEntry.handle) : Promise.resolve(null));
-        return basePromise.then(function(baseData){
-          perf.mark("your own last save read");
+        return Promise.all([otherLayersPromise, basePromise]).then(function(res){
           activeJoineryItemPage = {
             levelName: levelName, roomName: roomName, joineryCode: joineryCode,
             key: key, displayName: displayName,
             pdfsHandle: pdfsHandle, backupsHandle: backupsHandle,
-            layers: [], pendingLayerCount: pendingLayerEntries.length, ownHasDraft: !!ownDraft
+            layers: res[0], ownHasDraft: !!ownDraft
           };
-          loadOtherLayersInBackground(activeJoineryItemPage, pendingLayerEntries, perf);
-          var saved = ownDraft || baseData;
+          var saved = ownDraft || res[1];
           if (savedHasImage(saved)){
             applyRestoredState(saved);
             return;
@@ -5257,9 +4691,7 @@
       // new count badge on the button itself (see the .ibtn-badge CSS
       // comment), are the fix: said out loud, every time, exactly when it
       // first matters, rather than left for someone to notice on their own.
-      perf.mark("page shown");
-      perf.finish();
-      var otherLayerCount = activeJoineryItemPage.pendingLayerCount || (activeJoineryItemPage.layers || []).length;
+      var otherLayerCount = (activeJoineryItemPage.layers || []).length;
       var layerNote = otherLayerCount
         ? " " + otherLayerCount + " other saved layer" + (otherLayerCount === 1 ? "" : "s") + " on this item — tap the layers-with-a-badge icon in the toolbar above to view/toggle."
         : "";
@@ -5363,17 +4795,9 @@
   // either project shape -- "ability to open joinery item (NOT ROOM) on
   // right click, then add image and/or photo here." openJoineryItemDialog
   // below is that destination now; see its own comment for what it does.
-  // CHANGED AGAIN (v55, 2026-09-27) -- Andrew, urgent: "site measure and
-  // viewer still gets a second popup when pressing open check measure, it
-  // should go straight to the check measure. as it did before." Double-tap
-  // and the long-press "Open/Add check measure" row now open the item's
-  // page directly; the in-between Joinery Item dialog is no longer shown
-  // from here. Its two extra buttons moved onto the long-press menu itself
-  // (see showLockPopover): "View rework" (only when the item has a rework
-  // file) and, for a legacy project, "Open this room's own plan".
   function openRoomFromMarker(obj){
     if (!activeLevelName || activeRoomName) return;
-    openJoineryItemPage(obj);
+    openJoineryItemDialog(obj);
   }
 
   // For a LEGACY project only, the Room a marker points at still has a
@@ -5475,9 +4899,7 @@
   var joineryItemSubtitleEl = document.getElementById("joineryItemSubtitle");
   var joineryItemOpenPageBtn = document.getElementById("joineryItemOpenPageBtn");
   var joineryItemOpenRoomBtn = document.getElementById("joineryItemOpenRoomBtn");
-  var joineryItemViewReworkBtn = document.getElementById("joineryItemViewReworkBtn");
   var activeJoineryItemMarker = null;
-  var activeJoineryItemReworkEntries = [];
   function openJoineryItemDialog(obj){
     activeJoineryItemMarker = obj;
     joineryItemTitleEl.textContent = "Joinery item" + (obj.joineryCode ? " — " + obj.joineryCode : "");
@@ -5487,57 +4909,6 @@
     // sense for legacy projects -- see openLegacyRoomPlanFromJoineryItem's
     // own comment.
     joineryItemOpenRoomBtn.style.display = activeLevelIsFlat ? "none" : "";
-    // 2026-09-27 -- Andrew, verbatim: "if there has not been a check
-    // measure for a joinery item, remove the open check measure button."
-    // Only applied in the read-only Viewer (VIEW_ONLY_MODE): Site Measure
-    // (the editor) still needs this button to start the very FIRST check
-    // measure on an item with nothing saved yet (openJoineryItemPage's own
-    // "very first open" branch depends on being reachable from here) -- the
-    // Viewer can never create that first save, so an item with nothing
-    // saved yet would otherwise be a dead-end blank page there. Hidden by
-    // default and revealed only once a saved overlay is actually confirmed
-    // to exist, rather than shown-then-hidden, to avoid a flash of a button
-    // that immediately disappears; guarded against a stale async result if
-    // the dialog was closed/reopened for a different marker meanwhile.
-    if (VIEW_ONLY_MODE){
-      joineryItemOpenPageBtn.style.display = "none";
-      var checkKey = resolveJoineryItemPageKey(activeLevelName, obj);
-      // (v53, speed) Remembered per item for STATUS_CACHE_FRESH_MS, so
-      // re-opening the same marker's dialog doesn't re-walk its overlays
-      // folder every time (same reasoning as reworkFileKeySet).
-      var memoKey = (activeProjectName || "") + "\u0000" + checkKey;
-      var memo = viewerOverlayExistsMemo[memoKey];
-      if (memo && (Date.now() - memo.at) < STATUS_CACHE_FRESH_MS){
-        joineryItemOpenPageBtn.style.display = memo.has ? "" : "none";
-      } else {
-        listJoineryOverlays(activeProjectHandle, checkKey).then(function(overlays){
-          viewerOverlayExistsMemo[memoKey] = { at: Date.now(), has: overlays.length > 0 };
-          if (activeJoineryItemMarker === obj) joineryItemOpenPageBtn.style.display = overlays.length ? "" : "none";
-        }).catch(function(){ /* best-effort -- leave hidden on a read error */ });
-      }
-    } else {
-      joineryItemOpenPageBtn.style.display = "";
-    }
-    joineryItemOpenPageBtn.textContent = checkMeasureActionLabel(obj); // (v54) "Add" when none saved yet
-    // 2026-09-27 -- Andrew, verbatim: "add a view rework button if a
-    // joinery item has a rework, make the text red on this button." Shown
-    // only once at least one OPEN rework entry (per Install ITP's own
-    // "Outstanding reworks" definition) is confirmed for this item --
-    // same hidden-by-default, guarded-against-a-stale-async-result pattern
-    // as the check-measure button just above. Read-only: this app never
-    // creates, edits, or closes rework entries, only lists them.
-    joineryItemViewReworkBtn.style.display = "none";
-    activeJoineryItemReworkEntries = [];
-    // (v53, speed) Only touch storage when the background scan says this
-    // item actually has a rework file -- see reworkFileKeySet.
-    if (obj.roomName && itemMayHaveReworkFile(activeLevelName, obj.roomName, obj.joineryCode, activeLevelIsFlat)){
-      readItemReworkEntries(activeProjectHandle, activeLevelName, obj.roomName, obj.joineryCode, activeLevelIsFlat).then(function(entries){
-        if (activeJoineryItemMarker !== obj) return; // dialog moved on to a different item/closed meanwhile
-        var openEntries = openReworkEntriesOf(entries);
-        activeJoineryItemReworkEntries = openEntries;
-        joineryItemViewReworkBtn.style.display = openEntries.length ? "" : "none";
-      }).catch(function(){ /* best-effort -- leave hidden on a read error */ });
-    }
     joineryItemBackdrop.hidden = false;
   }
   function closeJoineryItemDialog(){
@@ -5554,12 +4925,6 @@
     var obj = activeJoineryItemMarker;
     closeJoineryItemDialog();
     openJoineryItemPage(obj);
-  });
-  joineryItemViewReworkBtn.addEventListener("click", function(){
-    if (!activeJoineryItemMarker) return;
-    var obj = activeJoineryItemMarker;
-    var title = "Rework" + (obj.joineryCode ? " — " + obj.joineryCode : "") + (obj.roomName ? " (" + [activeLevelName, obj.roomName].filter(Boolean).join(" · ") + ")" : "");
-    openReworkViewForItem(title, activeJoineryItemReworkEntries);
   });
 
   /* ============================== Job note dialogs (2026-09-22) ==============================
@@ -5685,7 +5050,7 @@
     jobNoteViewSubtitleEl.textContent = subtitle;
     jobNoteListEl.innerHTML = "<p class=\"jobnote-empty\">Loading…</p>";
     jobNoteViewBackdrop.hidden = false;
-    takeJobNotesList(key).then(function(notes){
+    listJobNotes(activeProjectHandle, key).then(function(notes){
       jobNoteListEl.innerHTML = "";
       if (!notes.length){
         jobNoteListEl.innerHTML = "<p class=\"jobnote-empty\">No job notes yet for this item.</p>";
@@ -6113,9 +5478,7 @@
     return showLeaveConfirm("Save changes to “" + leavingName + "” before leaving? Saving writes them straight into “" + leavingName + "”’s own folder. Choose Cancel to stay here instead, if you want to check something first, or Leave without saving to discard them.").then(function(choice){
       if (choice === "cancel") return Promise.reject({ code: "nav_cancelled" });
       if (choice === "discard") return Promise.resolve();
-      // roomlink markers excluded (2026-09-26) -- see hasUnlockedObject's
-      // own comment; there's no lock concept left for them to opt into.
-      state.objects.forEach(function(o){ if (o.type !== "roomlink") o.locked = true; });
+      state.objects.forEach(function(o){ o.locked = true; });
       // explicit=true (v45) -- choosing "Save" here is a deliberate,
       // in-the-moment user decision (not a silent timer), so for a
       // joinery item page this is one of the two places (alongside the
@@ -6422,22 +5785,6 @@
     if (VIEW_ONLY_MODE) return;
     if (!(hasActiveWork() && activeWorkPdfsHandle())){ saveAll(); return; }
     if (!state.imageW){ showToast("Open a plan or photo first."); return; }
-    var exitToPlanAfter = !!activeJoineryItemPage;
-    // "Is this check measure complete?" (2026-09-26, Andrew, verbatim: "in
-    // the individual check measure page, when you click save and exit, have
-    // a popup come up that asks is this check measure complete. if yes it
-    // will mark the item as check measured.") -- asked up front, the moment
-    // Save & exit is tapped on a joinery item's own page, before the save
-    // itself runs. Reuses the same generic yes/no showConfirm() primitive
-    // every other yes/no question in this app already uses (Confirm = yes,
-    // Cancel = no) rather than a bespoke dialog. Never asked for a plain
-    // mid-work Save on a level's own plan -- exitToPlanAfter is exactly the
-    // same "is this actually a joinery item page" gate the lock-all-on-exit
-    // logic just below already uses, so the two stay in sync automatically.
-    var askComplete = exitToPlanAfter ? showConfirm("Is this check measure complete?") : Promise.resolve(false);
-    askComplete.then(function(markComplete){ runSaveAllProjectAware(exitToPlanAfter, markComplete); });
-  }
-  function runSaveAllProjectAware(exitToPlanAfter, markComplete){
     var workName = activeWorkName();
     var jsonOK = false, pdfOK = false, pdfFilename = "", jsonErr = null, pdfErr = null;
     // (2026-09-25) Andrew: "lock all on save and exit". On a joinery item's
@@ -6448,10 +5795,9 @@
     // exactly where it was left (see rememberLevelPlanForReturn). A
     // mid-work Save on a level's own plan still stays put and locks
     // nothing, deliberately, as before -- see run_multi_room_save.js.
+    var exitToPlanAfter = !!activeJoineryItemPage;
     if (exitToPlanAfter && hasUnlockedObject()){
-      // roomlink markers excluded (2026-09-26) -- see hasUnlockedObject's
-      // own comment; there's no lock concept left for them to opt into.
-      state.objects.forEach(function(o){ if (o.type !== "roomlink") o.locked = true; });
+      state.objects.forEach(function(o){ o.locked = true; });
       if (state.selectedId){ var selS = findObj(state.selectedId); if (selS && selS.locked) state.selectedId = null; }
       hideLockPopover();
       pushHistory(); renderAll(); updateLockAllButton();
@@ -6474,39 +5820,15 @@
         console.error("Level PDF export failed:", err);
       });
     }).then(function(){
-      // Only actually mark it once the plan file itself is safely written,
-      // same "don't claim something happened that didn't" reasoning as the
-      // exit-after-save gate just below -- and only when the user actually
-      // answered yes above. Forward-only (setJoineryStatusForward itself
-      // never lets this go backwards), so calling it again on an item
-      // that's already measured/manufactured/installed is always a safe
-      // no-op, same as the right-click popover's own "Mark as check
-      // measured" row this reuses.
-      if (jsonOK && markComplete && activeJoineryItemPage){
-        var p = activeJoineryItemPage;
-        return setJoineryStatusForward(activeProjectHandle, p.levelName, p.roomName, p.joineryCode || "", "measured", deviceUserName || "Site Measure").then(function(status){
-          return { ok: true, status: status };
-        }).catch(function(err){
-          console.error("Mark as check measured failed:", err);
-          return { ok: false, err: err };
-        });
-      }
-      return null;
-    }).then(function(markResult){
-      var msg;
       if (jsonOK && pdfOK){
-        msg = "Saved “" + workName + "” and exported " + pdfFilename + ".";
+        showToast("Saved “" + workName + "” and exported " + pdfFilename + ".");
       } else if (jsonOK && !pdfOK){
-        msg = "Saved the plan file, but the PDF export failed (" + describeError(pdfErr) + ") — try Save again.";
+        showToast("Saved the plan file, but the PDF export failed (" + describeError(pdfErr) + ") — try Save again.", 8000);
       } else if (!jsonOK && pdfOK){
-        msg = "Exported " + pdfFilename + ", but saving the plan file failed (" + describeError(jsonErr) + ") — try Save again.";
+        showToast("Exported " + pdfFilename + ", but saving the plan file failed (" + describeError(jsonErr) + ") — try Save again.", 8000);
       } else {
-        msg = "Couldn't save to this level's folder (" + describeError(jsonErr) + ") — try again.";
+        showToast("Couldn't save to this level's folder (" + describeError(jsonErr) + ") — try again.", 8000);
       }
-      var markFailed = markResult && !markResult.ok;
-      if (markResult && markResult.ok) msg += " Marked as check measured.";
-      else if (markFailed) msg += " Couldn't mark it as check measured — try the right-click menu instead.";
-      showToast(msg, (jsonOK && pdfOK && !markFailed) ? 2400 : 8000);
       // Save & exit (see above): only once the plan file itself is safely
       // written -- a failed save stays put so nothing is walked away from.
       if (exitToPlanAfter && jsonOK && activeJoineryItemPage){
@@ -7195,7 +6517,7 @@
      before this field did).
      SPLIT AGAIN 2026-09-23, later the same day (Andrew): "manufacture
      status" itself splits into two sequential stages -- a new "machined"
-     stage (⚙️, rank 3), written by a brand-new sibling app, "Machine
+     stage (🪚, rank 3), written by a brand-new sibling app, "Machine
      Schedule", now sitting BEFORE the existing "manufactured" stage in the
      pipeline. Every rank at or above the old "manufactured" (3) shifts up
      by one: manufactured -> 4, delivered -> 5, installed -> 6. Site Measure
@@ -7266,8 +6588,8 @@
       case "installed": return "🏆";
       case "delivered": return "🚚";
       case "manufactured": return "📦";
-      case "machined": return "⚙️";
-      case "in_manufacture": return "🏭";
+      case "machined": return "🪚";
+      case "in_manufacture": return "🔨";
       case "measured": return "📏";
       default: return "";
     }
@@ -7286,8 +6608,8 @@
     if (rec.status === "installed") return "🏆";
     if (rec.status === "delivered") return "🚚";
     if (rec.status === "manufactured") return "📦";
-    if (rec.status === "machined") return "⚙️";
-    if (rec.status === "in_manufacture") return "🏭";
+    if (rec.status === "machined") return "🪚";
+    if (rec.status === "in_manufacture") return "🔨";
     if (rec.jobNote) return "🛠️";
     if (rec.status === "measured") return "📏";
     return "";
@@ -7596,11 +6918,11 @@
   // once (with whatever joineryStatusCache happened to hold, often null ->
   // no icons yet) by the time this resolves.
   function refreshJoineryStatusCache(force){
-    if (!activeProjectHandle){ setJoineryStatusCache([]); shopDrawingKeySet = null; reworkFileKeySet = null; checkMeasureKeySet = null; joineryStatusCacheProject = ""; joineryStatusCacheAt = 0; updateBackBtnVisibility(); return Promise.resolve(); }
+    if (!activeProjectHandle){ setJoineryStatusCache([]); shopDrawingKeySet = null; joineryStatusCacheProject = ""; joineryStatusCacheAt = 0; updateBackBtnVisibility(); return Promise.resolve(); }
     var projectName = activeProjectName || activeProjectHandle.name || "";
     var sameProject = joineryStatusCacheProject === projectName && Array.isArray(joineryStatusCache);
     if (!sameProject){
-      joineryStatusCache = null; joineryStatusIndex = null; shopDrawingKeySet = null; reworkFileKeySet = null; checkMeasureKeySet = null;
+      joineryStatusCache = null; joineryStatusIndex = null; shopDrawingKeySet = null;
       joineryStatusCacheProject = projectName; joineryStatusCacheAt = 0; joineryStatusRefreshP = null;
       // Instant paint from the last scan of this project on this device --
       // replaced the moment the real scan below lands.
@@ -7609,8 +6931,6 @@
         if (!snap || !Array.isArray(snap.list)) return;
         setJoineryStatusCache(snap.list);
         shopDrawingKeySet = Array.isArray(snap.shopKeys) ? new Set(snap.shopKeys) : null;
-        reworkFileKeySet = Array.isArray(snap.reworkKeys) ? new Set(snap.reworkKeys) : null;
-        checkMeasureKeySet = Array.isArray(snap.cmKeys) ? new Set(snap.cmKeys) : null;
         renderAll();
         updateBackBtnVisibility();
       }).catch(function(){});
@@ -7621,15 +6941,11 @@
     if (joineryStatusRefreshP) return joineryStatusRefreshP;
     joineryStatusRefreshP = Promise.all([
       readJoineryStatuses(activeProjectHandle),
-      listShopDrawingKeys(activeProjectHandle),
-      listReworkFileKeys(activeProjectHandle), // v53 speed -- see reworkFileKeySet
-      listCheckMeasureKeys(activeProjectHandle) // v54 -- see checkMeasureKeySet (v55: the Viewer uses it too)
+      listShopDrawingKeys(activeProjectHandle)
     ]).then(function(res){
       if (joineryStatusCacheProject !== projectName) return; // project changed under us
       setJoineryStatusCache(res[0]);
       shopDrawingKeySet = new Set(res[1]);
-      reworkFileKeySet = new Set(res[2]);
-      checkMeasureKeySet = res[3] ? new Set(res[3]) : null;
       joineryStatusCacheAt = Date.now();
       renderAll();
       // Also re-checks the "View job note" toolbar button's own visibility
@@ -7639,7 +6955,7 @@
       // so without this the button would stay hidden until some OTHER
       // screen transition happened to re-check it.
       updateBackBtnVisibility();
-      idbSet(joineryStatusSnapshotKey(projectName), { list: res[0], shopKeys: res[1], reworkKeys: res[2], cmKeys: res[3] || null, at: Date.now() }).catch(function(){});
+      idbSet(joineryStatusSnapshotKey(projectName), { list: res[0], shopKeys: res[1], at: Date.now() }).catch(function(){});
     }).then(function(){ joineryStatusRefreshP = null; }, function(err){ joineryStatusRefreshP = null; throw err; });
     return joineryStatusRefreshP;
   }
@@ -8510,17 +7826,7 @@
         // Same as the handle-drag guard above -- selecting/tapping an
         // object still works in viewer mode, only the subsequent drag
         // that would reposition it is skipped.
-        // A roomlink (indicator) marker never starts a drag either, tap-
-        // selectable or not (2026-09-26), Andrew, verbatim: "remove the
-        // ability to move the indicators (circles / icons)." Tapping one
-        // still selects it (harmless, and keeps the properties panel/
-        // delete working same as before) -- only the drag that would
-        // reposition it is skipped, same shape as the viewer-mode guard
-        // just above. This is independent of obj.locked (an indicator
-        // that's still unlocked in older saved data is just as immovable
-        // as one that's been through lockAll()) -- see hasUnlockedObject's
-        // own comment for why the .locked field itself is left alone here.
-        if (!VIEW_ONLY_MODE && hitO.type !== "roomlink"){
+        if (!VIEW_ONLY_MODE){
           if (hitO.type === "dimension"){
             dragMode = { kind: "dimOffset", id: hitO.id, start: deepClone(hitO), startWorld: dragWp };
           } else {
@@ -9289,22 +8595,13 @@
   // Unlock), never a side effect of clicking the same toolbar button
   // twice. So the button just disables itself once there's nothing left
   // to lock, the same way Undo disables once there's nothing to undo.
-  // roomlink (indicator) markers are excluded from all of this (2026-09-26,
-  // Andrew: remove the ability to move indicators, and the unlock button on
-  // them) -- they're never draggable regardless of .locked (see the
-  // onPointerDown select-branch's own comment) and no longer offer a Lock/
-  // Unlock control anywhere (showLockPopover's own generic Lock/Unlock row,
-  // and the layers panel's own lock button, both skip roomlink now) -- so
-  // there's no real "locked" concept left for one to opt into or out of.
-  // Excluding them here just keeps "Lock all"'s own enabled state, and this
-  // sweep's writes, meaningful for the objects that still have one.
   function hasUnlockedObject(){
-    return state.objects.some(function(o){ return !o.locked && o.type !== "roomlink"; });
+    return state.objects.some(function(o){ return !o.locked; });
   }
   function lockAll(){
     if (VIEW_ONLY_MODE) return; // defensive -- the toolbar's Lock-all button is hidden in viewer mode
     if (!hasUnlockedObject()) return; // button should already be disabled
-    state.objects.forEach(function(o){ if (o.type !== "roomlink") o.locked = true; });
+    state.objects.forEach(function(o){ o.locked = true; });
     if (state.selectedId){
       var sel = findObj(state.selectedId);
       if (sel && sel.locked) state.selectedId = null;
@@ -9401,13 +8698,11 @@
   // button has always had its own separate, inline copy of this icon and is
   // unaffected.
   var MIRROR_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5v15" stroke-dasharray="1.6 1.8"/><path d="M7 6.5L3.8 9l3.2 2.5"/><path d="M13 6.5L16.2 9l-3.2 2.5"/></svg>';
-  // BRING_FRONT_ICON removed (2026-09-26) along with the popover's own
-  // "Bring to front" row -- Andrew, verbatim: "remove the bring to front
-  // button." Send to back (below) is untouched -- not mentioned, and it's
-  // the image-only, separate action it's always been.
-  // Two-rectangle language, mirrored from Bring to front's own former icon:
-  // the BACK rectangle (where the object is going) is the solid/foreground
-  // one here, the front one it's ducking behind is the outline.
+  var BRING_FRONT_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="9" height="9" rx="1"/><path d="M5.5 12.5H4A1 1 0 0 1 3 11.5V4A1 1 0 0 1 4 3h7.5a1 1 0 0 1 1 1v1.5"/></svg>';
+  // Same two-rectangle language as Bring to front, mirrored: the BACK
+  // rectangle (where the object is going) is the solid/foreground one here,
+  // the front one it's ducking behind is the outline -- the reverse of
+  // Bring to front's own composition.
   var SEND_BACK_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="9" height="9" rx="1"/><path d="M14.5 7.5H16A1 1 0 0 1 17 8.5V16A1 1 0 0 1 16 17H8.5A1 1 0 0 1 7.5 16V14.5"/></svg>';
   var ROOM_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17V4.5a1 1 0 0 1 1-1h4l4 2v11.5"/><path d="M5 17h9"/><circle cx="11.3" cy="10.5" r="0.7" fill="currentColor" stroke="none"/></svg>';
   // A little tape measure -- "Mark as check measured" (📏 once set).
@@ -9425,12 +8720,6 @@
   // with what those two buttons taught every user of this app already.
   var ROTATE_CCW_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8H4V3"/><path d="M4.3 13.5A7 7 0 1 0 6 6l-2 2"/></svg>';
   var ROTATE_CW_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8h2V3"/><path d="M15.7 13.5A7 7 0 1 1 14 6l2 2"/></svg>';
-  // Plain X -- the new "Cancel" row (2026-09-26, item 1 restyle), matching
-  // Install ITP's own markerMenu Cancel button. The old floating popup
-  // never needed one (anywhere outside its small box already dismissed it),
-  // but the new centered-modal-with-backdrop look reads as needing an
-  // explicit dismiss action, same as every other modal in this app.
-  var CANCEL_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l10 10M15 5L5 15"/></svg>';
   function hideLockPopoverOnOutsideEvent(e){
     if (lockPopoverEl && !lockPopoverEl.contains(e.target)) hideLockPopover();
   }
@@ -9477,37 +8766,14 @@
   // right-click/long-press on anything else (a dimension, the base photo,
   // empty canvas, a locked non-roomlink object) still shows nothing, same
   // as the original v31 fix intended.
-  // Friendly title for the new modal's header (2026-09-26, item 1 restyle),
-  // matching Install ITP's own markerMenuTitle (which shows the joinery
-  // code). A roomlink gets the same treatment; every other object type
-  // gets a plain type label instead, since there's no equivalent "code" to
-  // show for a dimension, an image, etc.
-  var LOCK_POPOVER_TYPE_LABELS = { text: "Text", callout: "Callout", dimension: "Measurement", angle: "Angle", image: "Image" };
-  function lockPopoverTitleFor(obj, isBaseImage){
-    if (isBaseImage) return "Site photo";
-    if (obj.type === "roomlink") return obj.joineryCode || obj.roomName || "Room";
-    return LOCK_POPOVER_TYPE_LABELS[obj.type] || "Item";
-  }
   function showLockPopover(obj, clientX, clientY){
     if (VIEW_ONLY_MODE && !(obj && obj.type === "roomlink")) return;
     hideLockPopover();
-    // (2026-09-26, item 1 restyle) Now a centered backdrop modal, matching
-    // Install ITP's own #markerMenuBackdrop -- clientX/clientY are kept as
-    // parameters (existing callers and test hooks still pass them) but are
-    // no longer used to position anything; the old near-click floating
-    // popup positioning they drove is gone.
+    var r = stage.getBoundingClientRect();
     var wrap = document.createElement("div");
     wrap.className = "lock-popover-wrap";
-    var box = document.createElement("div");
-    box.className = "lock-popover-box";
-    wrap.appendChild(box);
-    // Clicking the dimmed backdrop itself (not the box or a row inside it)
-    // closes the menu -- matching Install ITP's own markerMenuBackdrop
-    // click-to-close. The pre-existing outside-pointerdown window listener
-    // below (hideLockPopoverOnOutsideEvent) no longer fires for this case
-    // now that the backdrop covers the whole stage (it "contains" every
-    // click within it), so this is a new, separate handler for it.
-    wrap.addEventListener("pointerdown", function(e){ if (e.target === wrap) hideLockPopover(); });
+    wrap.style.left = (clientX - r.left) + "px";
+    wrap.style.top = (clientY - r.top) + "px";
 
     // The base site photo (see BASE_IMAGE_SELECT_ID) is a pseudo-selection,
     // never a real object -- it can't be deleted, locked, or edited like
@@ -9520,11 +8786,6 @@
     var isBaseImage = !!obj.__isBaseImage;
     var isEmptyCanvas = !!obj.__isEmptyCanvas;
     var isRealObject = !isBaseImage && !isEmptyCanvas;
-
-    var titleEl = document.createElement("p");
-    titleEl.className = "lock-popover-title";
-    titleEl.textContent = lockPopoverTitleFor(obj, isBaseImage);
-    box.appendChild(titleEl);
 
     // "Delete on right click" -- REMOVED (2026-09-24), Andrew, verbatim:
     // "remove the following buttons from the site measure app. delete on
@@ -9549,7 +8810,7 @@
     // its label is the linked room's own name, not free text (see
     // makeRoomLink/renderPanel's labelObj).
     if (isRealObject && !obj.locked && !VIEW_ONLY_MODE && (obj.type === "text" || obj.type === "callout" || obj.type === "dimension" || obj.type === "angle")){
-      popoverRow(box, EDIT_ICON + "<span>Edit text</span>", function(){
+      popoverRow(wrap, EDIT_ICON + "<span>Edit text</span>", function(){
         hideLockPopover();
         state.selectedId = obj.id; setTool("select"); renderAll();
         beginInlineEdit(obj.id);
@@ -9560,34 +8821,10 @@
     // just double-click) as a second, more discoverable way in, same
     // reasoning as Edit text above. Works even while locked (see the
     // dblclick handler's own comment on this).
-    // Label changed to "Open check measure" (2026-09-26), Andrew, verbatim:
-    // "change the open joinery item on right click button to say open check
-    // measure" -- same row, same openRoomFromMarker destination, wording
-    // only (the matching button on the Joinery Item dialog this opens was
-    // renamed to match, see joineryItemOpenPageBtn).
-    // (v55) Viewer: no row at all when the background scan knows nobody
-    // has saved a check measure for this item yet (it would only open an
-    // empty page) -- the same rule the old in-between dialog applied.
-    if (isRealObject && obj.type === "roomlink" && !(VIEW_ONLY_MODE && checkMeasureKnownMissing(obj))){
-      popoverRow(box, ROOM_ICON + "<span>" + checkMeasureActionLabel(obj) + "</span>", function(){
+    if (isRealObject && obj.type === "roomlink"){
+      popoverRow(wrap, ROOM_ICON + "<span>Open joinery item</span>", function(){
         hideLockPopover();
         openRoomFromMarker(obj);
-      });
-    }
-    // (v55) Moved here from the old in-between Joinery Item dialog.
-    if (isRealObject && obj.type === "roomlink" && obj.roomName && reworkFileKeySet && itemMayHaveReworkFile(activeLevelName, obj.roomName, obj.joineryCode, activeLevelIsFlat)){
-      popoverRow(box, JOBNOTE_ICON + "<span class=\"popover-rework-label\">View rework</span>", function(){
-        hideLockPopover();
-        var title = "Rework" + (obj.joineryCode ? " \u2014 " + obj.joineryCode : "") + (obj.roomName ? " (" + [activeLevelName, obj.roomName].filter(Boolean).join(" \u00b7 ") + ")" : "");
-        readItemReworkEntries(activeProjectHandle, activeLevelName, obj.roomName, obj.joineryCode, activeLevelIsFlat).then(function(entries){
-          openReworkViewForItem(title, entries);
-        }).catch(function(){ showToast("Couldn't read rework data \u2014 try again."); });
-      });
-    }
-    if (isRealObject && obj.type === "roomlink" && !activeLevelIsFlat && obj.roomName){
-      popoverRow(box, ROOM_ICON + "<span>Open this room's own plan</span>", function(){
-        hideLockPopover();
-        openLegacyRoomPlanFromJoineryItem(obj);
       });
     }
 
@@ -9609,7 +8846,7 @@
       var rlCurStatusRec = joineryStatusCache ? findJoineryStatus(joineryStatusCache, activeLevelName, obj.roomName, obj.joineryCode || "") : null;
       var rlCurRank = rlCurStatusRec ? joineryStatusRank(rlCurStatusRec.status) : 0;
       if (rlCurRank < joineryStatusRank("measured")){
-        popoverRow(box, MEASURE_ICON + "<span>Mark as check measured</span>", function(){
+        popoverRow(wrap, MEASURE_ICON + "<span>Mark as check measured</span>", function(){
           hideLockPopover();
           setJoineryStatusForward(activeProjectHandle, activeLevelName, obj.roomName, obj.joineryCode || "", "measured", deviceUserName || "Site Measure").then(function(status){
             renderAll();
@@ -9630,7 +8867,7 @@
     // ability to add one; the Viewer is now the only place a job note can
     // be attached from at all.
     if (isRealObject && obj.type === "roomlink" && VIEW_ONLY_MODE){
-      popoverRow(box, JOBNOTE_ICON + "<span>Add job note</span>", function(){
+      popoverRow(wrap, JOBNOTE_ICON + "<span>Add job note</span>", function(){
         hideLockPopover();
         openAddJobNoteDialog(obj);
       });
@@ -9647,8 +8884,7 @@
     if (isRealObject && obj.type === "roomlink"){
       var rlJobNoteRec = joineryStatusCache ? findJoineryStatus(joineryStatusCache, activeLevelName, obj.roomName, obj.joineryCode || "") : null;
       if (rlJobNoteRec && rlJobNoteRec.jobNote){
-        prefetchJobNotes(jobNoteKeyFor(obj)); // (v55) start reading now, not on tap
-        popoverRow(box, JOBNOTE_ICON + "<span>View job note</span>", function(){
+        popoverRow(wrap, JOBNOTE_ICON + "<span>View job note</span>", function(){
           hideLockPopover();
           openViewJobNoteDialog(obj);
         });
@@ -9677,7 +8913,7 @@
     // its comment), the same way the job-note row above is gated on the
     // record's jobNote flag. Unknown-yet reads as "show", never as "hide".
     if (isRealObject && obj.type === "roomlink" && itemHasShopDrawing(shopDrawingKeyFor(obj))){
-      popoverRow(box, SHOPDRAWING_ICON + "<span>View shop drawing</span>", function(){
+      popoverRow(wrap, SHOPDRAWING_ICON + "<span>View shop drawing</span>", function(){
         hideLockPopover();
         openViewShopDrawingDialog(obj);
       });
@@ -9691,7 +8927,7 @@
     // Real image objects only offer this while unlocked, same as every
     // other action that changes one; the base photo has no lock concept.
     if (!VIEW_ONLY_MODE && (isBaseImage || (isRealObject && obj.type === "image" && !obj.locked))){
-      popoverRow(box, MIRROR_ICON + "<span>Mirror</span>", function(){
+      popoverRow(wrap, MIRROR_ICON + "<span>Mirror</span>", function(){
         hideLockPopover();
         if (isBaseImage) mirrorWholePlan();
         else mirrorImageObjectInPlace(obj);
@@ -9704,15 +8940,43 @@
     // canvas at all now that there's nothing left for that case to show
     // (only overBaseImage still opens it, for Mirror).
 
-    // "Bring to front" -- REMOVED (2026-09-26), Andrew, verbatim: "remove
-    // the bring to front button." Used to be offered here for every real,
-    // unlocked object type (moved to the very end of state.objects, the
-    // array whose order IS z-order) whenever something higher was actually
-    // there to go to -- see the removed BRING_FRONT_ICON's own comment for
-    // the full history (image-only in v17, opened up to every type in v30
-    // to fix a dimension-stuck-under-an-image bug). No replacement offered;
-    // Send to back below is untouched.
-    // Send to back -- the reverse, and (unlike the old Bring to front)
+    // Real report: inserted photos/PDF pages should default to sitting
+    // BELOW every measurement/text/callout/etc. (see placeInsertedImage),
+    // since a photo is a backdrop reference, not something meant to cover
+    // up the markup made on top of it -- but every so often one genuinely
+    // does need to sit above everything else (a close-up detail photo
+    // that's the whole point of that part of the plan), hence this escape
+    // hatch. Only offered while there's actually somewhere higher to go --
+    // an object already at the very top of the stack gets no row at all,
+    // rather than a "Bring to front" that would visibly do nothing.
+    //
+    // BUG FIXED (v30, 2026-09-17, reported by Andrew: "at the moment there
+    // is no way to get a dimension back to the front layer if an image
+    // covers it"). Bring to front used to be offered for image objects
+    // only -- a reasonable-looking restriction back when it shipped in v17,
+    // since at the time nothing else could ever legitimately end up above
+    // an annotation. That stopped being true the moment an image actually
+    // DOES get raised above the plan's annotations via this same action (a
+    // deliberate, legitimate use of it) -- there was then no way back for
+    // whichever dimension/text/etc. it now covers, since this row simply
+    // didn't exist for anything but an image. It's the same underlying
+    // mechanism (move to the very end of state.objects, the array whose
+    // order IS z-order) regardless of object type, so the type restriction
+    // is gone -- every real, unlocked object type can now be brought to
+    // front, including a dimension buried under an image.
+    if (isRealObject && !obj.locked && !VIEW_ONLY_MODE && state.objects[state.objects.length - 1] !== obj){
+      popoverRow(wrap, BRING_FRONT_ICON + "<span>Bring to front</span>", function(){
+        hideLockPopover();
+        var idx = state.objects.indexOf(obj);
+        if (idx >= 0){
+          state.objects.splice(idx, 1);
+          state.objects.push(obj);
+          pushHistory(); renderAll();
+          showToast("Brought to front.");
+        }
+      });
+    }
+    // Send to back -- the reverse, and (unlike Bring to front) still
     // offered for images only: images are meant to sit in their own middle
     // tier (background photo < images < annotations, per Andrew's own
     // description of the intended layering), so "back" for an image always
@@ -9720,15 +8984,14 @@
     // other images -- which is a sensible, unambiguous place to send one.
     // "Back" for an annotation is a fuzzier idea (there's no single
     // obviously-correct tier boundary below which it should land, the way
-    // there is for an image), so this is deliberately image-only, unlike the
-    // now-removed Bring to front (which briefly covered every type). Also
-    // doubles as the one-tap fix
+    // there is for an image), so this is deliberately NOT offered for every
+    // type the way Bring to front now is. Also doubles as the one-tap fix
     // for a project file saved before this version, where an image may
     // already be sitting above the plan's annotations because of the
     // selection-side bug described above -- no need to manually bring every
     // annotation back to front one at a time.
     if (isRealObject && obj.type === "image" && !obj.locked && !VIEW_ONLY_MODE && state.objects[0] !== obj){
-      popoverRow(box, SEND_BACK_ICON + "<span>Send to back</span>", function(){
+      popoverRow(wrap, SEND_BACK_ICON + "<span>Send to back</span>", function(){
         hideLockPopover();
         var idx = state.objects.indexOf(obj);
         if (idx >= 0){
@@ -9740,18 +9003,18 @@
       });
     }
 
-    // Rotate CW/CCW -- gated the same way the now-removed Bring to front
-    // was (a real, unlocked image object, never in viewer mode): turns the
-    // image 90° in place about its own center, any number of times, in
-    // either direction. Always offered regardless of the current angle --
-    // there's no "already there" state that would make a row do nothing, a
-    // rotated image can always rotate further.
+    // Rotate CW/CCW -- same gating as Bring to front (a real, unlocked
+    // image object, never in viewer mode): turns the image 90° in place
+    // about its own center, any number of times, in either direction.
+    // Always offered regardless of the current angle -- unlike Bring to
+    // front there's no "already there" state that would make a row do
+    // nothing, a rotated image can always rotate further.
     if (isRealObject && obj.type === "image" && !obj.locked && !VIEW_ONLY_MODE){
-      popoverRow(box, ROTATE_CW_ICON + "<span>Rotate CW</span>", function(){
+      popoverRow(wrap, ROTATE_CW_ICON + "<span>Rotate CW</span>", function(){
         hideLockPopover();
         rotateImageObject(obj, 1);
       });
-      popoverRow(box, ROTATE_CCW_ICON + "<span>Rotate CCW</span>", function(){
+      popoverRow(wrap, ROTATE_CCW_ICON + "<span>Rotate CCW</span>", function(){
         hideLockPopover();
         rotateImageObject(obj, -1);
       });
@@ -9760,15 +9023,8 @@
     // Icon+label reflect the CURRENT state (closed lock = currently
     // locked) and the label names the action a click performs, same as
     // the toolbar's own lock button.
-    // Excludes roomlink (indicators) -- (2026-09-26), Andrew, verbatim:
-    // "remove the unlock button on indicators, only images and dimensions,
-    // callouts etc should be movable." An indicator is never draggable
-    // regardless of this flag (see the onPointerDown select-branch's own
-    // comment), so a Lock/Unlock toggle for one would only ever mislead --
-    // it simply isn't offered at all now, the same way Edit text already
-    // wasn't for this type.
-    if (isRealObject && obj.type !== "roomlink" && !VIEW_ONLY_MODE){
-      popoverRow(box, (obj.locked ? LOCK_ICON_CLOSED : LOCK_ICON_OPEN) + "<span>" + (obj.locked ? "Unlock" : "Lock") + "</span>", function(){
+    if (isRealObject && !VIEW_ONLY_MODE){
+      popoverRow(wrap, (obj.locked ? LOCK_ICON_CLOSED : LOCK_ICON_OPEN) + "<span>" + (obj.locked ? "Unlock" : "Lock") + "</span>", function(){
         obj.locked = !obj.locked;
         if (obj.locked){
           if (state.selectedId === obj.id) state.selectedId = null;
@@ -9781,16 +9037,6 @@
         showToast(obj.locked ? "Item locked." : "Item unlocked.");
       });
     }
-
-    // "Cancel" -- the new modal's explicit dismiss row (2026-09-26, item 1
-    // restyle), matching Install ITP's own markerMenuCancelBtn; always last.
-    popoverRow(box, CANCEL_ICON + "<span>Cancel</span>", function(){ hideLockPopover(); });
-
-    // The single most relevant action -- the first context row built above
-    // (Cancel is never it) -- gets the accent treatment, matching Install
-    // ITP's own single green "Open ITP"/"Open room" row.
-    var firstRow = box.querySelector(".lock-popover");
-    if (firstRow) firstRow.classList.add("lock-popover-accent");
 
     stage.appendChild(wrap);
     lockPopoverEl = wrap;
@@ -10223,23 +9469,15 @@
           pushHistory(); renderAll();
         });
         row.appendChild(eyeBtn);
-        // No lock/unlock button for a roomlink (indicator) row (2026-09-26),
-        // Andrew, verbatim: "remove the unlock button on indicators, only
-        // images and dimensions, callouts etc should be movable." Same
-        // reasoning as showLockPopover's own matching row -- an indicator is
-        // never draggable regardless of .locked, so a toggle here would
-        // only mislead.
-        if (o.type !== "roomlink"){
-          var lockBtn = document.createElement("button");
-          lockBtn.className = "lbtn" + (o.locked ? " on" : ""); lockBtn.title = o.locked ? "Unlock" : "Lock";
-          lockBtn.innerHTML = o.locked ? LOCK_ICON_CLOSED : LOCK_ICON_OPEN;
-          lockBtn.addEventListener("click", function(){
-            o.locked = !o.locked;
-            if (o.locked && state.selectedId === o.id) state.selectedId = null;
-            pushHistory(); renderAll(); updateLockAllButton();
-          });
-          row.appendChild(lockBtn);
-        }
+        var lockBtn = document.createElement("button");
+        lockBtn.className = "lbtn" + (o.locked ? " on" : ""); lockBtn.title = o.locked ? "Unlock" : "Lock";
+        lockBtn.innerHTML = o.locked ? LOCK_ICON_CLOSED : LOCK_ICON_OPEN;
+        lockBtn.addEventListener("click", function(){
+          o.locked = !o.locked;
+          if (o.locked && state.selectedId === o.id) state.selectedId = null;
+          pushHistory(); renderAll(); updateLockAllButton();
+        });
+        row.appendChild(lockBtn);
         // Real report: no per-row delete here -- too risky/easy to hit by
         // accident once a plan has enough objects that this list is long
         // and rows are packed close together (that's the whole reason this
@@ -10321,18 +9559,7 @@
       var stroke = node.getAttribute("stroke");
       var fill = node.getAttribute("fill");
       if (tag === "image"){
-        // 2026-09-27 -- Andrew: "when opening a site measure, some images
-        // are coming out faded. we already fixed this once." Root cause:
-        // this per-image opacity (previously 0.55) compounded with the
-        // wrapping layer group's OWN opacity multiplier (previously 0.75,
-        // see renderOverlayLayers below) -- a foreign photo layer ended up
-        // at roughly 0.55*0.75 =~ 0.41 effective opacity, on top of the
-        // grayscale, which reads as washed-out rather than just
-        // "distinguishable as someone else's layer." The group-level
-        // multiplier is dropped entirely below (redundant with this
-        // per-element treatment); this value alone now controls how dim a
-        // foreign photo layer looks.
-        node.setAttribute("style", "filter: grayscale(0.5); opacity: 0.7;");
+        node.setAttribute("style", "filter: grayscale(0.5); opacity: 0.55;");
         continue;
       }
       if (tag === "text"){
@@ -10390,75 +9617,53 @@
   // signature of "which item + which layers are visible" decides whether
   // the group is rebuilt; toggling a layer or opening another item changes
   // it, a pen stroke doesn't.
-  // (v56, speed on the tablet) Incremental, not rebuild-everything. Other
-  // people's layers now arrive one at a time after the page opens (v54),
-  // and every arrival used to change the signature below and rebuild EVERY
-  // layer drawn so far -- photos included, each one decoded again -- so an
-  // item with N saved layers drew N*(N+1)/2 layers' worth of photos while
-  // opening, all on the main thread. Now each layer's group is built once,
-  // the first time it's visible, tagged with its index, and kept; a new
-  // arrival appends one group; hiding/showing a layer just flips that
-  // group's display. Only a different item page (or force) clears it.
-  var overlayLayersRenderedPage = null;
-  var OVERLAY_TINT_PALETTE = ["#7c3aed", "#2563eb", "#ea580c", "#db2777", "#059669"];
-  function buildOverlayLayerGroup(layer, i){
-    var tint = OVERLAY_TINT_PALETTE[i % OVERLAY_TINT_PALETTE.length];
-    // 2026-09-27: no group-wide opacity dim on top of tintOverlayObjectGroup's
-    // own per-element treatment -- see that function's own comment on the
-    // "faded images" fix.
-    var g = el("g", { style: "pointer-events:none;" });
-    g.setAttribute("data-layer-idx", String(i));
-    (layer.objects || []).forEach(function(o){
-      if (o.hidden) return;
-      try{
-        var og = renderObject(o, true);
-        tintOverlayObjectGroup(og, tint);
-        g.appendChild(og);
-      }catch(e){ /* a malformed foreign object should never break rendering of everything else */ }
-    });
-    return g;
-  }
+  var overlayLayersRenderedSig = null;
   function renderOverlayLayers(force){
-    var page = activeJoineryItemPage;
-    var layers = (page && page.layers) || [];
-    if (force || page !== overlayLayersRenderedPage){
-      overlayLayersGroup.innerHTML = "";
-      overlayLayersRenderedPage = page;
-    }
+    var layersNow = (activeJoineryItemPage && activeJoineryItemPage.layers) || [];
+    var sig = (activeJoineryItemPage ? activeJoineryItemPage.key : "") + "|" + layersNow.length + "|" + layersNow.map(function(l){ return l.visible ? "1" : "0"; }).join("");
+    if (!force && sig === overlayLayersRenderedSig && (layersNow.length === 0 || overlayLayersGroup.childNodes.length)) return;
+    overlayLayersRenderedSig = sig;
+    overlayLayersGroup.innerHTML = "";
     var btn = document.getElementById("overlayLayersBtn");
+    var layers = layersNow;
     if (btn) btn.style.display = layers.length ? "" : "none";
     // (v45.10) See the .ibtn-badge CSS comment -- a plain count, always in
-    // sync with the button's own visibility above.
+    // sync with the button's own visibility above, is the whole fix: no
+    // separate call sites to keep aligned, just this one already-existing
+    // chokepoint every layer-list change already renders through.
     var badge = document.getElementById("overlayLayersBadge");
     if (badge){
       badge.hidden = !layers.length;
       badge.textContent = String(layers.length);
     }
     if (!layers.length){
-      if (overlayLayersGroup.childNodes.length) overlayLayersGroup.innerHTML = "";
       if (overlayLayersPanelOpen) setOverlayLayersPanelOpen(false);
       return;
     }
-    var byIdx = {};
-    Array.prototype.forEach.call(overlayLayersGroup.childNodes, function(g){
-      if (g.getAttribute) byIdx[g.getAttribute("data-layer-idx")] = g;
-    });
+    // A small rotating palette of flat, moderate-saturation accent colors
+    // rather than one fixed tint -- with more than one other contributor
+    // on the same item, each one's layer still needs to read as visually
+    // distinct from the others, not just distinct from your own untinted
+    // work. First slot is purple, matching what Andrew's own request
+    // already called it ("purples layers") -- likely just autocorrect for
+    // "different", but a reasonable default to lead with regardless.
+    // (v45.14: flat hex colors applied directly to each object's own
+    // paint via tintOverlayObjectGroup, replacing the old CSS filter
+    // chain -- see that function's comment for why.)
+    var palette = ["#7c3aed", "#2563eb", "#ea580c", "#db2777", "#059669"];
     layers.forEach(function(layer, i){
-      var g = byIdx[String(i)];
-      var show = layer.visible !== false && layer.objects && layer.objects.length;
-      if (!g){
-        if (!show) return; // built the first time it's actually shown
-        g = buildOverlayLayerGroup(layer, i);
-        // keep document order == layer order (a later layer draws on top)
-        var next = null;
-        Array.prototype.some.call(overlayLayersGroup.childNodes, function(c){
-          if (c.getAttribute && +c.getAttribute("data-layer-idx") > i){ next = c; return true; }
-          return false;
-        });
-        overlayLayersGroup.insertBefore(g, next);
-      }
-      g.style.display = show ? "" : "none";
-      g.setAttribute("display", show ? "inline" : "none"); // PDF/PNG export honours the attribute too
+      if (!layer.visible || !layer.objects || !layer.objects.length) return;
+      var tint = palette[i % palette.length];
+      var g = el("g", { style: "opacity:0.75; pointer-events:none;" });
+      layer.objects.forEach(function(o){
+        if (o.hidden) return;
+        try{
+          var og = renderObject(o, true);
+          tintOverlayObjectGroup(og, tint);
+          g.appendChild(og);
+        }catch(e){ /* a malformed foreign object should never break rendering of everything else */ }
+      });
+      overlayLayersGroup.appendChild(g);
     });
   }
   function renderOverlayLayersPanel(){
@@ -10773,7 +9978,6 @@
     // A no-op with an empty selector when no Projects folder is chosen yet
     // (see populateIdentitySelector's own "CSV not readable yet" catch).
     populateIdentitySelector();
-    refreshCompanyLogoPreview(); // best-effort, same no-op-until-root-chosen pattern as populateIdentitySelector
     projectGate.hidden = false;
     navRecord(which); // device Back button (2026-09-25) -- see navRecord
   }
@@ -11134,7 +10338,7 @@
         var row = document.createElement("button");
         row.type = "button";
         row.className = "project-row";
-        row.title = VIEW_ONLY_MODE ? "Tap to open — press and hold to remove from your list" : "Tap to open";
+        row.title = VIEW_ONLY_MODE ? "Tap to open — press and hold to remove from your list" : "Tap to open — press and hold to delete";
         var label = document.createElement("span");
         label.textContent = name;
         var arrow = document.createElement("span");
@@ -11149,16 +10353,9 @@
             showToast("Couldn't open “" + name + "” — try again.");
           });
         });
-        // (v55) Andrew: "need to remove the delete option from long press on
-        // the site measure app (project / level / room etc)". Site Measure
-        // no longer offers delete on a long-press at all; the Viewer keeps
-        // its own long-press, which only hides an entry from that device's
-        // list (never deletes anything).
-        if (VIEW_ONLY_MODE){
-          wireLongPress(row, function(){
-            confirmAndDeleteEntry(kind, name, refreshFn);
-          });
-        }
+        wireLongPress(row, function(){
+          confirmAndDeleteEntry(kind, name, refreshFn);
+        });
         listEl.appendChild(row);
       });
       if (split.hidden.length) appendHiddenToggle(listEl, kind, split.hidden, refreshFn);
@@ -11345,16 +10542,6 @@
       }).then(function(){
         exportAllProjectPdfsBtn.disabled = false;
       });
-    });
-  }
-  // "View rework" -- project-wide, read-only (see listAllProjectOpenReworksReadOnly's
-  // own comment). Available in BOTH Site Measure and the Viewer, unlike the
-  // PDF-export buttons above, since listing is not a write action.
-  var viewProjectReworkBtn = document.getElementById("viewProjectReworkBtn");
-  if (viewProjectReworkBtn){
-    viewProjectReworkBtn.addEventListener("click", function(){
-      if (!activeProjectHandle) return;
-      openReworkViewForProject();
     });
   }
   // Steps back out to the top-level project list without opening a level --
@@ -12062,38 +11249,6 @@
   var IDENTITY_NEW_VALUE = "__new__";
   var IDENTITY_PLACEHOLDER_VALUE = "__none__";
 
-  /* ---- Company logo (read-only, 2026-09-27) ----
-     Andrew, verbatim: "change company logo should only be visable in the
-     projects app, in every other app it should load the one chosen in
-     projects." UTZLINE Projects owns the only write path (writeCompanyLogo/
-     removeCompanyLogo in its own index.html) -- this app just reads the
-     same "company-logo.png" file at the Projects root, best-effort, no
-     upload/remove UI of its own. */
-  var companyLogoPreviewBox = document.getElementById("companyLogoPreviewBox");
-  var companyLogoObjectUrl = null;
-  function readCompanyLogoReadOnly(){
-    if (!projectsRootHandle) return Promise.resolve(null);
-    return projectsRootHandle.getFileHandle("company-logo.png", { create: false }).then(function(fh){
-      return fh.getFile();
-    }).then(function(file){
-      return file.arrayBuffer();
-    }).then(function(buf){
-      if (companyLogoObjectUrl) URL.revokeObjectURL(companyLogoObjectUrl);
-      companyLogoObjectUrl = URL.createObjectURL(new Blob([buf]));
-      return companyLogoObjectUrl;
-    }, function(){ return null; });
-  }
-  function refreshCompanyLogoPreview(){
-    if (!companyLogoPreviewBox) return Promise.resolve();
-    return readCompanyLogoReadOnly().then(function(url){
-      if (url){
-        companyLogoPreviewBox.innerHTML = "<img src=\"" + url + "\" alt=\"Company logo\">";
-      } else {
-        companyLogoPreviewBox.innerHTML = "<span class=\"placeholder\">No logo</span>";
-      }
-    });
-  }
-
   function populateIdentitySelector(){
     if (!identitySelector) return Promise.resolve();
     return readUsersCsv().then(function(rows){
@@ -12709,15 +11864,6 @@
     });
     var ol = clone.querySelector("#overlayLayersGroup");
     if (ol) ol.remove();
-    // (v54, speed/memory -- 4 GB tablets) Drop every base-plan tile that
-    // doesn't touch the visible area before serialising: the old code
-    // serialised the WHOLE plan's tiles (often tens of MB of base64) just
-    // to keep the zoomed-in part of it.
-    Array.prototype.forEach.call(clone.querySelectorAll("#baseImageTiles image"), function(im){
-      var tx = parseFloat(im.getAttribute("x")) || 0, ty = parseFloat(im.getAttribute("y")) || 0;
-      var tw = parseFloat(im.getAttribute("width")) || 0, th = parseFloat(im.getAttribute("height")) || 0;
-      if (tx + tw < x0 || tx > x1 || ty + th < y0 || ty > y1) im.remove();
-    });
     var outSvg = document.createElementNS(SVG_NS, "svg");
     outSvg.setAttribute("xmlns", SVG_NS);
     outSvg.setAttribute("width", outW);
@@ -12726,16 +11872,8 @@
     outSvg.appendChild(embeddedFontStyleEl());
     outSvg.appendChild(clone);
     var xml = new XMLSerializer().serializeToString(outSvg);
-    // (v54) A Blob URL instead of "data:...;base64," + btoa(unescape(
-    // encodeURIComponent(xml))): that made three more full-size copies of
-    // an already huge string, and on a big plan could throw outright
-    // ("Invalid string length") -- synchronously, inside the Open check
-    // measure tap, which is exactly "pressing Open check measure does
-    // nothing" on Site Measure.
-    var blobUrl = URL.createObjectURL(new Blob([xml], { type: "image/svg+xml" }));
-    xml = null;
-    var timeoutP = new Promise(function(_, reject){ setTimeout(function(){ reject(new Error("snapshot timed out")); }, 20000); });
-    return Promise.race([loadImageEl(blobUrl), timeoutP]).then(function(img){
+    var dataUrl = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(xml)));
+    return loadImageEl(dataUrl).then(function(img){
       var canvas = document.createElement("canvas");
       canvas.width = outW; canvas.height = outH;
       var ctx = canvas.getContext("2d");
@@ -12744,21 +11882,11 @@
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       ctx.drawImage(img, 0, 0, outW, outH);
-      var out = { dataUrl: canvas.toDataURL("image/jpeg", 0.9), w: outW, h: outH };
-      canvas.width = canvas.height = 0; // release the bitmap now, not at GC time
-      return out;
+      return { dataUrl: canvas.toDataURL("image/jpeg", 0.9), w: outW, h: outH };
     }).catch(function(err){
       console.error("Plan snapshot for item failed:", err);
       return null;
-    }).then(function(res){
-      URL.revokeObjectURL(blobUrl);
-      return res;
     });
-  }
-  // (v54) Never let the snapshot throw synchronously into the tap handler.
-  function safeRenderPlanViewSnapshotForItem(){
-    try{ return renderPlanViewSnapshotForItem(); }
-    catch(e){ console.error("Plan snapshot for item failed:", e); return Promise.resolve(null); }
   }
 
   var cropBackdrop = document.getElementById("cropBackdrop");
@@ -13551,17 +12679,14 @@
     // Real report: a newly-inserted reference photo should default to
     // sitting BELOW every measurement/text/callout/etc already on the plan
     // (a photo is backdrop reference, not something that should cover up
-    // markup that's already there). Used to also mention the popover's own
-    // "Bring to front" as the escape hatch for the rarer photo that
-    // genuinely needs to sit on top -- that row was removed 2026-09-26, per
-    // Andrew, so there's no escape hatch back to the top any more; a photo
-    // that needs to sit above an annotation has to be placed after it, or
-    // the annotation moved, rather than reordered afterward. Object order in
-    // state.objects IS z-order (later = drawn on top, same as any other
-    // object), so this lands the new image just before the first non-image
-    // object instead of state.objects.push()'ing it straight to the very
-    // top -- still above any EARLIER inserted image, only ever below
-    // annotations.
+    // markup that's already there) -- with "Bring to front" in its own
+    // right-click/long-press popover (see showLockPopover) as the escape
+    // hatch for the rarer photo that genuinely needs to sit on top. Object
+    // order in state.objects IS z-order (later = drawn on top, same as any
+    // other object), so this lands the new image just before the first
+    // non-image object instead of state.objects.push()'ing it straight to
+    // the very top -- still above any EARLIER inserted image, only ever
+    // below annotations.
     var firstAnnotationIdx = state.objects.findIndex(function(o){ return o.type !== "image"; });
     if (firstAnnotationIdx === -1) state.objects.push(obj);
     else state.objects.splice(firstAnnotationIdx, 0, obj);
@@ -15078,240 +14203,6 @@
       showGateState("setup");
     });
   }
-  // (2026-09-26, NEXT_RUN_NOTES.md item 1) A small, deliberately minimal
-  // test-hook surface -- new, and NOT the same thing as the old
-  // `redline_projects_test.html` fixture's own much larger `window.__test`
-  // object (that fixture is a frozen, long-out-of-sync fork of this app
-  // from many versions back, with its own separate hook surface this file
-  // does not and should not try to replicate). This exists only to let a
-  // regression test drive showLockPopover directly against the real,
-  // current built app, without needing the full folder-picker/project/
-  // level setup: an object literal is enough (showLockPopover only reads
-  // its fields; it doesn't require the object to actually be a member of
-  // state.objects to render its menu).
-  window.__testHooks = {
-    ready: function(){ return true; },
-    showLockPopover: function(obj, x, y){ return showLockPopover(obj, x, y); },
-    hideLockPopover: function(){ return hideLockPopover(); },
-    isViewOnlyMode: function(){ return VIEW_ONLY_MODE; },
-    // 2026-09-27, company logo read-only preview -- a minimal fake
-    // projectsRootHandle (just enough of getFileHandle/getFile/arrayBuffer
-    // to exercise readCompanyLogoReadOnly()), same minimal-surface
-    // philosophy as the lock-popover hooks above rather than a full
-    // project/folder mock.
-    setFakeCompanyLogoForTest: function(hasLogo, bytesArray){
-      var fakeRoot = {
-        getFileHandle: function(name, opts){
-          if (name === "company-logo.png" && hasLogo){
-            return Promise.resolve({
-              getFile: function(){
-                return Promise.resolve({
-                  arrayBuffer: function(){ return Promise.resolve(new Uint8Array(bytesArray || []).buffer); }
-                });
-              }
-            });
-          }
-          return Promise.reject(new DOMException("Not found", "NotFoundError"));
-        }
-      };
-      projectsRootHandle = fakeRoot;
-      return refreshCompanyLogoPreview();
-    },
-    companyLogoPreviewHTML: function(){ return companyLogoPreviewBox ? companyLogoPreviewBox.innerHTML : null; },
-    // 2026-09-27, Viewer fixes + rework viewer -- a small generic in-memory
-    // fake FileSystemDirectoryHandle tree, built from a plain JSON
-    // description, so tests can exercise listJoineryOverlays/
-    // readItemReworkEntries/listAllProjectOpenReworksReadOnly without a
-    // real OPFS/native filesystem. Node shape: a directory is
-    // {dirs:{name: node}, files:{name: {text) or {bytes:[...]}}}} (either
-    // key may be omitted). Every returned handle supports getDirectoryHandle/
-    // getFileHandle/getFile/values -- the same minimal surface these
-    // read-only functions actually call.
-    makeFakeDirHandleForTest: function(node, name){
-      node = node || {};
-      var dirs = node.dirs || {}, files = node.files || {};
-      function wrapFile(fname, fnode){
-        // createWritable/close (2026-09-27, added for the (since removed) Sub Orders
-        // write-back test) actually mutate fnode.text in place -- a
-        // pendingText closure var, same shape as the app's own real
-        // verifiedHandleWrite/createWritable pairing, so a write followed
-        // by a later read (whether through this same handle instance or a
-        // fresh getFileHandle call against the same underlying fnode)
-        // sees the new content and the new size, exactly like a real
-        // FileSystemFileHandle would.
-        var pendingText = null;
-        return {
-          kind: "file", name: fname,
-          getFile: function(){
-            var text = fnode.text != null ? fnode.text : "";
-            return Promise.resolve({
-              size: new TextEncoder().encode(text).length,
-              text: function(){ return Promise.resolve(text); },
-              arrayBuffer: function(){ return Promise.resolve(new Uint8Array(fnode.bytes || []).buffer); }
-            });
-          },
-          createWritable: function(){
-            return Promise.resolve({
-              write: function(data){
-                var textP = (data && typeof data.text === "function") ? data.text() : Promise.resolve(String(data));
-                return textP.then(function(t){ pendingText = t; });
-              },
-              close: function(){
-                if (pendingText != null) fnode.text = pendingText;
-                return Promise.resolve();
-              }
-            });
-          }
-        };
-      }
-      var self = {
-        kind: "directory", name: name || "",
-        getDirectoryHandle: function(n, opts){
-          if (dirs[n]) return Promise.resolve(window.__testHooks.makeFakeDirHandleForTest(dirs[n], n));
-          return Promise.reject(new DOMException("Not found", "NotFoundError"));
-        },
-        getFileHandle: function(n, opts){
-          if (files[n]) return Promise.resolve(wrapFile(n, files[n]));
-          return Promise.reject(new DOMException("Not found", "NotFoundError"));
-        },
-        values: function(){
-          var entries = Object.keys(dirs).map(function(n){ return window.__testHooks.makeFakeDirHandleForTest(dirs[n], n); })
-            .concat(Object.keys(files).map(function(n){ return wrapFile(n, files[n]); }));
-          var i = 0;
-          return { next: function(){ return Promise.resolve(i < entries.length ? { done: false, value: entries[i++] } : { done: true }); } };
-        },
-        // Only ever actually consulted on activeProjectHandle itself, by
-        // ensureProjectWritePermission -- the Viewer's own narrowly-scoped
-        // write-permission upgrade for "Add job note" (and formerly "mark sub order
-        // received". Always "granted" here: this fake stands in for a
-        // real handle the person has already picked a real folder with,
-        // so there's no native permission prompt to simulate.
-        queryPermission: function(){ return Promise.resolve("granted"); },
-        requestPermission: function(){ return Promise.resolve("granted"); }
-      };
-      return self;
-    },
-    // opts: { projectName, levelName, isFlat }. Wires the fake tree in as
-    // activeProjectHandle and sets the level-context globals these
-    // read-only functions/the joinery-item dialog rely on.
-    setFakeProjectForTest: function(tree, opts){
-      opts = opts || {};
-      activeProjectHandle = window.__testHooks.makeFakeDirHandleForTest(tree, opts.projectName || "Test Project");
-      activeProjectName = opts.projectName || "Test Project";
-      activeLevelName = opts.levelName || "L1";
-      activeLevelIsFlat = !!opts.isFlat;
-      // (v53) A fresh fake project starts with nothing scanned, same as a
-      // real project switch does (see refreshJoineryStatusCache).
-      reworkFileKeySet = null;
-      checkMeasureKeySet = null;
-      viewerOverlayExistsMemo = {};
-    },
-    // (v53, speed) Runs the same background rework listing the status scan
-    // runs, and installs its result -- so a test can exercise the
-    // "dialog open reads nothing unless this item has a rework file" path.
-    scanReworkKeysForTest: function(){
-      return listReworkFileKeys(activeProjectHandle).then(function(keys){
-        reworkFileKeySet = new Set(keys);
-        return keys;
-      });
-    },
-    reworkKeySetKnownForTest: function(){ return !!reworkFileKeySet; },
-    scanCheckMeasureKeysForTest: function(){
-      return listCheckMeasureKeys(activeProjectHandle).then(function(keys){ checkMeasureKeySet = new Set(keys); return keys; });
-    },
-    checkMeasureLabelForTest: function(obj){ return checkMeasureActionLabel(obj); },
-    joineryItemOpenPageBtnTextForTest: function(){ return joineryItemOpenPageBtn.textContent; },
-    // Wraps the active fake project so every getDirectoryHandle/
-    // getFileHandle/values() call anywhere below it is counted.
-    startStorageCallCounterForTest: function(){
-      var counter = { n: 0 };
-      function wrap(h){
-        if (!h || h.kind !== "directory") return h;
-        return {
-          kind: "directory", name: h.name,
-          getDirectoryHandle: function(n, o){ counter.n++; return h.getDirectoryHandle(n, o).then(wrap); },
-          getFileHandle: function(n, o){ counter.n++; return h.getFileHandle(n, o); },
-          values: function(){ counter.n++; return h.values(); },
-          removeEntry: function(n, o){ counter.n++; return h.removeEntry(n, o); },
-          queryPermission: h.queryPermission ? function(o){ return h.queryPermission(o); } : undefined,
-          requestPermission: h.requestPermission ? function(o){ return h.requestPermission(o); } : undefined
-        };
-      }
-      activeProjectHandle = wrap(activeProjectHandle);
-      window.__storageCallCounter = counter;
-    },
-    storageCallCountForTest: function(){ return window.__storageCallCounter ? window.__storageCallCounter.n : -1; },
-    openJoineryItemDialogForTest: function(obj){
-      openJoineryItemDialog(obj);
-      return new Promise(function(resolve){ setTimeout(function(){
-        resolve({
-          openPageBtnVisible: joineryItemOpenPageBtn.style.display !== "none",
-          viewReworkBtnVisible: joineryItemViewReworkBtn.style.display !== "none",
-          openRoomBtnVisible: joineryItemOpenRoomBtn.style.display !== "none"
-        });
-      }, 50); });
-    },
-    clickJoineryItemViewReworkBtnForTest: function(){ joineryItemViewReworkBtn.click(); },
-    clickViewProjectReworkBtnForTest: function(){
-      var btn = document.getElementById("viewProjectReworkBtn");
-      if (btn) btn.click();
-      return new Promise(function(resolve){ setTimeout(resolve, 50); });
-    },
-    reworkViewBackdropHidden: function(){ return reworkViewBackdrop.hidden; },
-    reworkViewListText: function(){ return reworkViewListEl.textContent; },
-    reworkViewTitleText: function(){ return reworkViewTitleEl.textContent; },
-    closeReworkViewForTest: function(){ closeReworkView(); },
-    closeJoineryItemDialogForTest: function(){ closeJoineryItemDialog(); },
-    // Reads any plain-text file under activeProjectHandle by an explicit
-    // directory-segment path, for asserting on the real Orders/*.json (and
-    // confirming Inbox/*.json is untouched) after a write -- resolves to
-    // null on any read error rather than rejecting, since "doesn't exist"
-    // is itself a meaningful, assertable result in some of these checks.
-    readProjectFileTextForTest: function(dirSegments, fileName){
-      var h = Promise.resolve(activeProjectHandle);
-      (dirSegments || []).forEach(function(seg){
-        h = h.then(function(dh){ return dh.getDirectoryHandle(seg, { create: false }); });
-      });
-      return h.then(function(dh){ return dh.getFileHandle(fileName, { create: false }); })
-        .then(function(fh){ return fh.getFile(); })
-        .then(function(f){ return f.text(); })
-        .catch(function(){ return null; });
-    },
-    // Fakes a fresh overlay-layers construction the same way openJoineryItemPage
-    // does (each per-person layer entry gets visible:true unconditionally --
-    // see that function's own otherLayersPromise) and reports back what it
-    // built, so the "all layers on by default" behavior is verified against
-    // the real construction path rather than merely asserted from reading code.
-    fakeOverlayLayersConstructionForTest: function(rawLayers){
-      return (rawLayers || []).map(function(raw){
-        return { user: raw.user, stamp: raw.stamp, fileName: raw.fileName, visible: true, objects: raw.objects || [] };
-      });
-    },
-    // Exercises the real tint function on a manufactured <g><image/></g> so
-    // the reduced-fade values (0.7 image-level, no group-level multiplier)
-    // are checked against actual behavior, not just re-stated constants.
-    tintOverlayImageStyleForTest: function(tintColor){
-      var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      var img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-      g.appendChild(img);
-      tintOverlayObjectGroup(g, tintColor || "#c8391c");
-      return img.getAttribute("style");
-    },
-    overlayLayersPanelComputedStyle: function(){
-      overlayLayersPanel.hidden = false;
-      var cs = getComputedStyle(overlayLayersPanel);
-      var out = { left: cs.left, right: cs.right };
-      overlayLayersPanel.hidden = true;
-      return out;
-    },
-    layersPanelComputedStyle: function(){
-      layersPanel.hidden = false;
-      var cs = getComputedStyle(layersPanel);
-      var out = { left: cs.left, right: cs.right };
-      layersPanel.hidden = true;
-      return out;
-    }
-  };
   boot();
 })();
 </script>
