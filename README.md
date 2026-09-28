@@ -1,6 +1,24 @@
 # UTZLINE Viewer — installable app
 
-**Current version: v62** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+**Current version: v63** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+
+**v63 (2026-09-28):** The Reworks screen shows what every app did to a rework. Rework round: *"also need to fix this rework conflict. rework pdfs should be user datetime stamped. they should also show the entire status log per rework"*, and *"reworks that are delivered to be green border / text and sent to bottom of page (maybe a separate selectable delivered folder)"*.
+- Each rework's state now comes from the rework file **plus its log files**:
+  - Cut (Machine Schedule).
+  - Complete — ready to deliver (Scheduler).
+  - Delivered to site (Delivery ITP), with its pin and photo. A retaken pin + photo replaces the earlier one.
+  - Closed out (Install ITP).
+  - An undo goes back to the state before.
+  - Before this, the Viewer only saw what was written into the rework file.
+- Delivered and closed-out reworks move to the green "Delivered (N)" section automatically.
+- **The status log** lists every change and comment from every app, newest first, with who, when and which app.
+- **Photos** load when a rework is opened. They're captioned with who and when, and the **delivery-location** photo (the latest retake) is included. The list itself keeps no photos, which saves memory on 4 GB tablets. Photos are released when the screen closes.
+- Comments are written exactly as in v61, as their own files with the app name.
+- A rework file that is still syncing is counted on the screen ("couldn't be read — close and reopen in a moment"), never shown as empty.
+- Tests:
+  - New: `pdftest-projects/run_v63_viewer_rework_fold.js`.
+  - `run_v61_viewer_reworks.js` now expects the app name on each log line.
+  - Site Measure / Viewer suite: 92/92.
 
 **v62 (2026-09-28):** Button wording. Asked whether to change to "Create / Open site measure" or keep "Add / Open check measure", Andrew answered *"Stay"*, then *"Actually. Create"*.
 - The joinery item's button and its long-press row now read **Create site measure** when there isn't one yet and **Open site measure** when there is. The rule for which one shows hasn't changed. The Viewer always says "Open site measure", and the Timings panel title matches.
