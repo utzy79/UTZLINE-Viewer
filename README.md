@@ -1,6 +1,24 @@
 # UTZLINE Viewer — installable app
 
-**Current version: v65** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+**Current version: v68 (RC 1.0)** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+
+**v68 (2026-09-29) — RC 1.0.**
+
+- **The saved copy's title block** (Save PDF / PNG, backups, the current-view snapshot). Andrew: *"this text must be scalable, it comes out great on an a1 size but when smaller or shapshot it takes over the whole title block area, it needs to have the room name, joinery name and date time username, all in readabele. multi row text."*
+  - It's now rows of text: **Joinery** code (larger), **Room**, level · project, then **Saved** date, time · who.
+  - All of it is sized as a share of the copy's own width (2.4%, capped for very big sheets). A snapshot's block is the same proportion of the picture as an A1's, not the whole bar.
+  - Each row shrinks a little to fit, then is cut with "…". The logo sits on the right, as tall as the rows.
+- Same build as Site Measure's v68. Its new "Site measure not required", "Mark check measure complete?" and PDF-page crop are Site Measure only; the Viewer can't do those.
+
+**v67 (2026-09-29) — RC 1.0.** Andrew: *"ok, now change them all to version RC 1.0. and have that on the logos (small)"*.
+
+- The app is now **RC 1.0** (release candidate 1.0) across the UTZLINE family. A small **RC 1.0** tag sits beside the logo in the toolbar and on the start screen, and the quick-help tip reads "RC 1.0 (build v67)".
+- The build number (v67) still counts up underneath, so installed copies pick up each update. It's also what the Windows installer "Setup RC 1.0" contains.
+
+**v66 (2026-09-29):** **Timings removed.** Andrew: *"remove timings"*.
+- The **⏱ Timings** button on the Projects screen and its list are gone. Nothing about opens is stored on the device any more, and the old list is cleared.
+- **Plan PDFs read offline.** The pdf.js worker was still loaded from the internet (only `pdf.min.js` was local), so reading a plan PDF needed a connection. It now uses the local `pdf.worker.min.js`, which was already in the folder and precached.
+- This build is also the one inside the new Windows installer.
 
 **v65 (2026-09-29):** **Job notes are "For Construction".** Andrew: *"a job note is IFC, and this gets a light grey watermark on the pdf stating IFC"*, then *"make that For Construction watermark"*.
 - A job note added here (Add job note) gets **FOR CONSTRUCTION** in light grey across every page as it's saved.
