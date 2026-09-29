@@ -1,6 +1,14 @@
 # UTZLINE Viewer — installable app
 
-**Current version: v63** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+**Current version: v65** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+
+**v65 (2026-09-29):** **Job notes are "For Construction".** Andrew: *"a job note is IFC, and this gets a light grey watermark on the pdf stating IFC"*, then *"make that For Construction watermark"*.
+- A job note added here (Add job note) gets **FOR CONSTRUCTION** in light grey across every page as it's saved.
+- A protected PDF is saved as it is, and the toast says so.
+- `pdf-lib.min.js` (MIT) is included and loaded only when a note is added.
+- Test: `pdftest-projects/run_v65_jobnote_for_construction.js`.
+
+**v64 (2026-09-28):** View shop drawing shows **Sent** and **Returned** drawings, each with a revision picker. Revisions read as REV A, B, C (files saved as REV 0/1/2 show as A/B/C). This is the same change as Site Measure v64.
 
 **v63 (2026-09-28):** The Reworks screen shows what every app did to a rework. Rework round: *"also need to fix this rework conflict. rework pdfs should be user datetime stamped. they should also show the entire status log per rework"*, and *"reworks that are delivered to be green border / text and sent to bottom of page (maybe a separate selectable delivered folder)"*.
 - Each rework's state now comes from the rework file **plus its log files**:

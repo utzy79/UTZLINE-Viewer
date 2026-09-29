@@ -451,7 +451,9 @@
 // v61 (2026-09-28): every check measure is a layer (newest on top); Viewer Reworks screen with comments.
 // v62 (2026-09-28): button reads "Create site measure" / "Open site measure".
 // v63 (2026-09-28): Viewer Reworks screen folds the rework event files (shared UtzRework module).
-var CACHE_NAME = "utzline-viewer-cache-v63";
+// v64 (2026-09-28): View shop drawing lists Sent and Returned; revisions read as REV A, B, C.
+// v65 (2026-09-29): job notes added here are stamped FOR CONSTRUCTION on every page (pdf-lib.min.js precached).
+var CACHE_NAME = "utzline-viewer-cache-v65";
 var ICON_VERSION = CACHE_NAME.replace("utzline-viewer-cache-", "");
 
 var PRECACHE_URLS = [
@@ -463,6 +465,7 @@ var PRECACHE_URLS = [
   "./svg2pdf.umd.min.js",
   "./pdf.min.js",
   "./pdf.worker.min.js",
+  "./pdf-lib.min.js", // v65: stamps job notes FOR CONSTRUCTION (loaded only when one is added)
   "./sans.woff2",
   "./mono.woff2",
   "./icons/icon-192.png?v=" + ICON_VERSION,
