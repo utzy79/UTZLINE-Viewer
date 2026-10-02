@@ -1,6 +1,13 @@
 # UTZLINE Viewer — installable app
 
-**Current version: v85 (RC 1.0)** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+**Current version: v86 (RC 1.0)** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+
+**v86 (2026-10-02) — RC 1.0: a short marker menu on tablets and phones, and nothing can be added there.**
+
+- **Anything that isn't Windows** (the Lenovo tablet, phones, iPads, Macs): the menu on a joinery marker is only **Open joinery summary**, **Open site measure**, **View job note** (only when the item has one) and **Cancel**. No Add shop drawing, no Add job note, and the other rows (View shop drawing, View rework, Open this room's own plan, Export floor plan) are gone from the menu -- the joinery summary still lists the shop drawings, job notes and reworks to open.
+- The joinery summary has no **Add shop drawing** button and no drop box on these devices, and a PDF dropped on it is ignored. Nothing can be added from the Viewer there.
+- **Windows is unchanged** (the Add rows are still on the Windows Viewer). Site Measure is untouched. The Viewer decides by the device it is running on, so there is nothing to switch.
+- Site Measure is still v85: this change is in the shared source, so Site Measure's next build will carry the same version number.
 
 **v85 (2026-10-02) — RC 1.0: logos folder, reversed Machined, drag and drop only, Viewer button ink.**
 
