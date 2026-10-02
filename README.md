@@ -1,6 +1,10 @@
 # UTZLINE Viewer — installable app
 
-**Current version: v91 (RC 1.0)** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+**Current version: v93 (RC 1.0)** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+
+**v93 (2026-10-02) — RC 1.0 (Viewer):** kept in lockstep with Site Measure v93 (room tick-list plan preview — Site Measure only; nothing changes in the Viewer).
+
+**v92 (2026-10-02) — RC 1.0 (Viewer):** kept in lockstep with Site Measure v92 (room tick-list starts unticked — Site Measure only; nothing changes in the Viewer).
 
 **v91 (2026-10-02) — RC 1.0 (Viewer):** kept in lockstep with Site Measure v91 (room Save & exit tick-list — Site Measure only; nothing changes in the Viewer).
 
