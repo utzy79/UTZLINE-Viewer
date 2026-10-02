@@ -1,6 +1,12 @@
 # UTZLINE Viewer — installable app
 
-**Current version: v86 (RC 1.0)** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+**Current version: v91 (RC 1.0)** (kept in lockstep with the editor's own version, since both are built from the same `source.html` — bump this line, and add a dated changelog entry, every time a new build ships; v40 through v45.6 shipped without this line being kept in sync — see `next-version-notes.md` in the project, or the editor's own README, for the full per-version detail of that stretch. The only change specific to v45.6 itself: the level-list exclusion gained the new `itp-delivery` folder.)
+
+**v91 (2026-10-02) — RC 1.0 (Viewer):** kept in lockstep with Site Measure v91 (room Save & exit tick-list — Site Measure only; nothing changes in the Viewer).
+
+**v90 (2026-10-02) — RC 1.0 (Viewer): the right-click menu says which room is being site measured.** Bold "Site measure: ROOM <room>" under the item title, plus how many items the room's measure covers (same menu line as the editor).
+
+**v89 (2026-10-02) — RC 1.0 (Viewer): one site measure per room.** Open site measure on any item of a room opens the room's page (the same page the editor makes), an item with no room keeps its own, and the joinery summary lists the room's site measures plus the item's older ones. Also carries the editor's v87–v88 changes that don't show in the Viewer (sharp crop, crop window lock).
 
 **v86 (2026-10-02) — RC 1.0: a short marker menu on tablets and phones, and nothing can be added there.**
 
