@@ -1744,6 +1744,19 @@ window.__pdfImportLibFailed = false;
   .measure-pad button.mp-hit{ filter:brightness(0.82); transform:scale(0.96); }
   .measure-pad button.mp-quick{ font-size:14px; background:var(--accent-soft); color:var(--accent-ink); border-color:var(--accent); }
   .measure-pad button.mp-fn{ font-size:14px; }
+  /* (2026-10-08) calculator + fast keys (-13 / -26 / -39) */
+  /* (2026-10-08) Andrew: "don't need this (name) visible in the site measure app main page" -- the name chip at the bottom left is out of sight in Site Measure
+     (still in the page so sign-in keeps working; the Viewer too, 2026-10-08) */
+  #utzNameCorner, #utzNameCorner select{ opacity:0 !important; pointer-events:none !important; }
+  .measure-pad button.mp-listening{ background:var(--danger,#d44); color:#fff; }
+  .measure-pad button.mp-minus{ font-size:15px; background:var(--surface-2); color:var(--danger,#d44); border-color:var(--danger,#d44); }
+  .measure-pad button.mp-wide{ grid-column:span 2; }
+  .measure-pad .mp-calc{ grid-column:1 / -1; display:none; flex-direction:column; gap:5px; padding-bottom:5px; border-bottom:1px solid var(--border-strong); }
+  .measure-pad.calc-on .mp-calc{ display:flex; }
+  .measure-pad .mp-calc-disp{ min-height:30px; padding:4px 8px; border-radius:7px; background:var(--surface-2); border:1px solid var(--border-strong); font-size:18px; font-weight:600; text-align:right; word-break:break-all; color:var(--text-primary); }
+  .measure-pad .mp-calc-disp small{ display:block; font-size:12px; font-weight:400; color:var(--text-secondary); }
+  .measure-pad .mp-calc-row{ display:flex; gap:5px; }
+  .measure-pad .mp-calc-row button{ flex:1; height:38px; }
   .measure-pad button.mp-done{ grid-column:span 2; background:var(--accent); border-color:var(--accent-ink); color:var(--on-accent,#fff); font-size:15px; }
 
   svg text{cursor:default;}
@@ -2499,6 +2512,7 @@ window.__pdfImportLibFailed = false;
                in / out" -- shown only for a site measure's plan snapshot (opts.onZoom) -->
           <button class="mbtn" id="cropZoomOutBtn" type="button" hidden title="Show more of the plan">− Zoom out</button>
           <button class="mbtn" id="cropZoomInBtn" type="button" hidden title="Show less of the plan">+ Zoom in</button>
+          <button class="mbtn" id="cropCancelBtn" type="button" hidden title="Don't open this site measure — stay on the plan">Cancel</button>
           <button class="mbtn" id="cropSkipBtn">Use full photo</button>
           <button class="mbtn mbtn-accent" id="cropApplyBtn">Crop</button>
         </div>
@@ -5686,27 +5700,17 @@ window.__pdfImportLibFailed = false;
      none of the administrators has a PIN in it, the change is allowed -- there is nothing to check against.
    - Its own little numberpad (4 digits), so it works in apps with no numberpad of their own ($ Summary).
    UtzAdminGate.guard(getRoot, fn): asks, then runs fn() only on the right PIN.  UtzAdminGate.require(getRoot) -> Promise<bool>. */
-/* UTZLINE PIN (2026-10-02): PINs in utzline-users.csv are stored scrambled ("h1:<salt>:<sha-256>") so the file can't be read for PINs.
-   A plain PIN already in the file still works (compared as-is) and is scrambled the next time an app saves the file.
-   UtzPin.eq(stored, entered) -> bool (a blank stored PIN never matches);  UtzPin.stored(pin) -> what to write to the file;
+/* UTZLINE PIN: (2026-10-08) PINs in utzline-users.csv are saved as typed -- the hashing was removed. PINs the older builds wrote as
+   "h1:<salt>:<sha-256>" are still read (they can't be turned back into digits), until that PIN is set again.
+   UtzPin.eq(stored, entered) -> bool (a blank stored PIN never matches);  UtzPin.stored(pin) -> what to write to the file (plain since 2026-10-08; old h1: hashes are still read);
    UtzPin.isHashed(s).  Pure ES5 SHA-256 (works on file:// and plain http, where crypto.subtle is missing). */
 (function(){
   "use strict";
   if (window.UtzPin) return;
-  var K = [], H0 = [];
-  (function(){
-    var n = 2, found = 0;
-    while (found < 64){
-      var prime = true;
-      for (var d = 2; d * d <= n; d++) if (n % d === 0){ prime = false; break; }
-      if (prime){
-        if (found < 8) H0.push(((Math.pow(n, 1 / 2) % 1) * 4294967296) >>> 0);
-        K.push(((Math.pow(n, 1 / 3) % 1) * 4294967296) >>> 0);
-        found++;
-      }
-      n++;
-    }
-  })();
+  // the standard SHA-256 constants written out (2026-10-08): computing them with Math.pow gave a different PIN hash on some Android
+  // browsers, so a PIN set on the PC was rejected there
+  var H0 = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  var K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
   function utf8(s){
     var out = [], i, c;
     s = unescape(encodeURIComponent(String(s)));
@@ -5749,14 +5753,15 @@ window.__pdfImportLibFailed = false;
   function eq(storedPin, entered){
     var st = String(storedPin == null ? "" : storedPin).trim(), en = String(entered == null ? "" : entered);
     if (!st) return false;
-    if (isHashed(st)){ var p = st.split(":"); return p.length === 3 && sha256Hex(p[1] + ":" + en) === p[2]; }
-    return st === en;
+    // (2026-10-08) Android keyboards can add a space or use full-width digits: also try the entered PIN tidied up
+    var tidy = en.replace(/[\uFF10-\uFF19]/g, function(ch){ return String.fromCharCode(ch.charCodeAt(0) - 0xFF10 + 48); }).replace(/\s+/g, "");
+    if (isHashed(st)){ var p = st.split(":"); return p.length === 3 && (sha256Hex(p[1] + ":" + en) === p[2] || (tidy !== en && sha256Hex(p[1] + ":" + tidy) === p[2])); }
+    return st === en || st === tidy;
   }
+  // (2026-10-08) Andrew: "remove the hashing" -- new and changed PINs are written as typed (trimmed). A PIN already written as h1:<salt>:<hash>
+  // can't be turned back into digits, so eq() still reads those (nobody is locked out); set the PIN again and it is saved plain.
   function stored(pin){
-    var p = String(pin == null ? "" : pin).trim();
-    if (!p || isHashed(p)) return p;
-    var s = salt();
-    return "h1:" + s + ":" + sha256Hex(s + ":" + p);
+    return String(pin == null ? "" : pin).trim();
   }
   window.UtzPin = { eq: eq, stored: stored, isHashed: isHashed, _sha256: sha256Hex };
 })();
@@ -8463,7 +8468,9 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
     if (!A || !A.pickName) return;
     if (noAccess(name)){ revoke(name); return; }
     S.pendingName = name;
-    Promise.resolve().then(function(){ return A.pickName(name); }).then(function(){
+    // the tap that picked the name is the moment the browser lets the app ask for the Projects folder back (see UtzUsers.ensureAccess)
+    var access = (window.UtzUsers && UtzUsers.ensureAccess) ? UtzUsers.ensureAccess() : Promise.resolve(true);
+    access.then(function(ok){ if (!ok) return Promise.reject(new Error("no folder access")); return A.pickName(name); }).then(function(){
       if (curName() && curName().toLowerCase() === String(name).toLowerCase()) unlocked();
       else S.pendingName = "";
     }, function(){ S.pendingName = ""; });
@@ -9197,7 +9204,18 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
     window.addEventListener("resize", function(){ placePill(); });
     setTimeout(placePill, 600);
   }
-  window.UtzUsers = { canUse: canUse, noAccessNames: noAccessNames, defaultApps: defaultApps, refreshDefaults: refreshDefaults, DEPARTMENTS: DEPARTMENTS, departmentsOf: departmentsOf, setDepartments: setDepartments, pickDepartments: pickDepartments, APP_CODES: APP_CODES, init: init, filterNames: filterNames, showsHere: showsHere, needsApproval: needsApproval, request: request, poke: poke, loadAdmins: loadAdmins, isAdmin: isAdminName, PENDING_FILE: PENDING_FILE, openUsers: openManage, ADMIN_FILE: ADMIN_FILE };
+  // (2026-10-08) Andrew: "the pin issue is it loses contact with the project folder". Android drops the folder permission between visits; the PIN is
+  // checked against utzline-users.csv in that folder, and the sign-in cover sat above the app's own Reconnect screen, so there was no way to restore it.
+  // Called from the tap on a name: asks for the folder's editing permission again (instant when it is still granted). Resolves true/false.
+  function ensureAccess(){
+    var r = root();
+    if (!r || typeof r.requestPermission !== "function") return Promise.resolve(true);
+    return Promise.resolve(r.requestPermission({ mode: "readwrite" })).then(function(p){
+      if (p !== "granted") toast("Allow access to the Projects folder to sign in (the PIN is checked against it).");
+      return p === "granted";
+    }, function(){ return false; });
+  }
+  window.UtzUsers = { ensureAccess: ensureAccess, canUse: canUse, noAccessNames: noAccessNames, defaultApps: defaultApps, refreshDefaults: refreshDefaults, DEPARTMENTS: DEPARTMENTS, departmentsOf: departmentsOf, setDepartments: setDepartments, pickDepartments: pickDepartments, APP_CODES: APP_CODES, init: init, filterNames: filterNames, showsHere: showsHere, needsApproval: needsApproval, request: request, poke: poke, loadAdmins: loadAdmins, isAdmin: isAdminName, PENDING_FILE: PENDING_FILE, openUsers: openManage, ADMIN_FILE: ADMIN_FILE };
 })();
 </script>
 <!-- UTZLINE-USERS END -->
@@ -11796,7 +11814,20 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
      sync client or antivirus can hold a brand-new file for a moment and the
      save fails as it finishes (UTZLINE Projects v43 found this). */
   var SAVE_RETRY_MS = [500, 1500];
+  // (2026-10-08) Andrew: "why won't the schedule popup work? ... would it be as it's still saving the file". Every verified write is counted while it runs, so the
+  // delivery date (which opens the moment a check measure is ticked, while its own save is still writing and the sync app is busy) can wait until the folder is quiet.
+  var writesInFlight = 0;
+  function whenWritesIdle(maxMs){
+    var t0 = Date.now();
+    return new Promise(function(res){
+      (function poll(){ if (writesInFlight <= 0 || Date.now() - t0 > (maxMs || 25000)) return setTimeout(res, writesInFlight <= 0 ? 250 : 0); setTimeout(poll, 150); })();
+    });
+  }
   function verifiedHandleWrite(handle, blob){
+    writesInFlight++;
+    return verifiedHandleWriteInner(handle, blob).then(function(v){ writesInFlight--; return v; }, function(e){ writesInFlight--; throw e; });
+  }
+  function verifiedHandleWriteInner(handle, blob){
     var tries = 0;
     function attempt(){
       return handle.createWritable().then(function(w){
@@ -12355,17 +12386,14 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
     // detectFolderShape) has no project handle to anchor a restore on
     // either -- left unpersisted rather than half-restored; this only
     // ever covers the normal project -> level [-> room] shape.
-    if (VIEW_ONLY_MODE || !PROJECTS_ROOT_SUPPORTED) return;
+    if (!PROJECTS_ROOT_SUPPORTED) return;   // (2026-10-08) the Viewer keeps the pointer too (device-local only): it is used after a share
     if (!activeProjectHandle || !activeLevelName){
       idbSet(LAST_ACTIVE_WORK_KEY, null).catch(function(){});
       return;
     }
-    idbSet(LAST_ACTIVE_WORK_KEY, {
-      projectHandle: activeProjectHandle,
-      projectName: activeProjectName,
-      levelName: activeLevelName,
-      roomName: activeRoomName || ""
-    }).catch(function(){});
+    var ptr = { projectName: activeProjectName, levelName: activeLevelName, roomName: activeRoomName || "" };
+    // the handle is kept when it can be (it can't always be stored); the project is also found again by name from the Projects root
+    idbSet(LAST_ACTIVE_WORK_KEY, Object.assign({ projectHandle: activeProjectHandle }, ptr)).catch(function(){ return idbSet(LAST_ACTIVE_WORK_KEY, ptr).catch(function(){}); });
   }
   // Called once at boot, right after the top project list is confirmed
   // reachable (see bootIntoProjectGate) -- tries to step straight back down
@@ -12380,6 +12408,44 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
   // since, or anything else) just leaves the person on the project list
   // they'd have landed on regardless, with no error toast -- this is a
   // convenience on top of normal boot, not a user-initiated action.
+  // (2026-10-08) Andrew: "when sharing a site measure it needs to go back to the page you were on ... goes all the way back to the start".
+  // Android can drop the app while the share sheet is open and reload it afterwards, which lands on the project list (it opens there every
+  // time on purpose). A tap on any Share button leaves a timestamp; if the app starts again within 2 hours of one, it steps back into the
+  // project / level / room that was open. A share that comes back with the page still alive clears the stamp, so a normal open is unchanged.
+  var RESUME_SHARE_KEY = "utzline-resume-after-share", RESUME_SHARE_MS = 2 * 60 * 60 * 1000;
+  document.addEventListener("click", function(e){
+    var b = e.target && e.target.closest ? e.target.closest("button, [role=button]") : null;
+    if (!b || !(/share/i.test((b.id || "") + " " + (b.getAttribute("data-a") || "") + " " + (b.textContent || "")))) return;
+    try{ localStorage.setItem(RESUME_SHARE_KEY, String(Date.now())); }catch(x){}
+    setTimeout(function(){ try{ localStorage.removeItem(RESUME_SHARE_KEY); }catch(x){} }, 45000);
+  }, true);
+  document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") setTimeout(function(){ try{ localStorage.removeItem(RESUME_SHARE_KEY); }catch(x){} }, 1500); });
+  // read ONCE when the page loads (the stamp is then cleared): the folder may need Reconnect first, which comes later, so the answer is kept
+  var resumePending = (function(){
+    var t = 0; try{ t = parseInt(localStorage.getItem(RESUME_SHARE_KEY) || "0", 10) || 0; localStorage.removeItem(RESUME_SHARE_KEY); }catch(x){}
+    return !!t && Date.now() - t < RESUME_SHARE_MS;
+  })();
+  function resumeAfterShareDue(){ var d = resumePending; resumePending = false; return d; }
+  function tryRestoreLastActiveWork(){
+    return idbGet(LAST_ACTIVE_WORK_KEY).then(function(saved){
+      if (!saved || !saved.levelName || (!saved.projectHandle && !saved.projectName)) return;
+      // the project folder is found again from the Projects root by name (the handle kept from before the reload may have lost its permission even
+      // when the root was just reconnected); the kept handle is the fallback
+      var fresh = (projectsRootHandle && saved.projectName) ? projectsRootHandle.getDirectoryHandle(saved.projectName, { create: false }).catch(function(){ return null; }) : Promise.resolve(null);
+      return fresh.then(function(ph){
+        ph = ph || saved.projectHandle;
+        if (!ph) throw new Error("the project folder wasn't found");
+        return ph.queryPermission({ mode: "readwrite" }).then(function(perm){
+          if (perm !== "granted") throw new Error("no permission for the project folder");
+          return openProjectFromHandle(ph, saved.projectName).then(function(){
+            return openLevel(saved.levelName);
+          }).then(function(){
+            if (saved.roomName) return openRoom(saved.roomName);
+          });
+        });
+      });
+    }).catch(function(err){ console.error("Going back to where you were failed:", err); showToast("Couldn't go back to where you were — pick it from the list."); });
+  }
     // ---- periodic local backup ----
   // Separate from the IndexedDB autosave above (which only restores your
   // in-progress edits if you reopen this same tab/browser): this actually
@@ -15491,6 +15557,7 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
             ? "CAPTURE THE WHOLE ROOM — this site measure covers all " + roomCount + " items in " + obj.roomName + ". Drag the corners around the whole room, then Crop (zoom out if it doesn't all show):"
             : "Crop the plan snapshot for “" + dn + "” — drag the corners, then Crop, or keep the whole view:",
           skipLabel: "Use full view",
+          cancelable: true,
           onZoom: function(f){
             var r0 = prev.region, cx = r0.x0 + r0.w / 2, cy = r0.y0 + r0.h / 2, w = r0.w * f, h = r0.h * f;
             return safeRenderPlanViewSnapshotForItem({ region: { x0: cx - w / 2, y0: cy - h / 2, x1: cx + w / 2, y1: cy + h / 2 } }).then(function(n){ if (n) prev = n; return n; });
@@ -15604,8 +15671,10 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
             }
             return showCropDialog(snap.dataUrl, snap.w, snap.h, {
               label: "Crop the plan snapshot for “" + displayName + "” — drag the corners, then Crop, or keep the whole view:",
-              skipLabel: "Use full view"
+              skipLabel: "Use full view",
+              cancelable: true
             }).then(function(res){
+              if (cropClosedByBack){ cropClosedByBack = false; showToast("Cancelled — nothing was changed."); var ce2 = new Error("check measure open cancelled from the crop window"); ce2.code = "nav_cancelled"; throw ce2; }
               var pick = res && res.dataUrl ? res : snap;
               applyLoadedImage(pick.dataUrl, pick.w, pick.h, displayName);
               unsavedSinceLastSave = false; });
@@ -17497,7 +17566,15 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
     } else {
       askComplete = exitToPlanAfter ? showConfirm("Mark check measure complete?", { okLabel: "Yes", cancelLabel: "No" }) : Promise.resolve(false);
     }
-    askComplete.then(function(markComplete){ runSaveAllProjectAware(exitToPlanAfter, markComplete); });
+    askComplete.then(function(markComplete){
+      // (2026-10-08) Andrew: "can it do the file writes after the schedule date is picked (saves all)": the delivery date is asked FIRST, before anything is written
+      var codes = markComplete === true && pg ? [pg.joineryCode || ""] : (Array.isArray(markComplete) ? markComplete : []);
+      var todo = pg ? codes.map(function(c){ return { level: pg.levelName, room: pg.roomName, joineryId: c }; }).filter(function(it){
+        var rec = joineryStatusCache ? findJoineryStatus(joineryStatusCache, it.level, it.room, it.joineryId) : null;
+        return !(rec && joineryStatusRank(rec.status) >= joineryStatusRank("measured"));
+      }) : [];
+      return askDeliveryDatesFirst(todo).then(function(){ runSaveAllProjectAware(exitToPlanAfter, markComplete); });
+    });
   }
   /* (v94) Andrew: "30% opaque indicator -- add shop drawing or job note should reflect the same (selector to chose what items in
      the room the drawing are for)". In the Viewer's Add shop drawing / Add job note dialogs, when the marker's room has more
@@ -18846,9 +18923,26 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
   function cmIso(d){ function p(n){ return (n < 10 ? "0" : "") + n; } return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
   function cmAddDays(iso, n){ var d = new Date(iso + "T00:00:00"); d.setDate(d.getDate() + n); return cmIso(d); }
   function cmSubBusiness(iso, n){ var d = new Date(iso + "T00:00:00"); n = Math.max(0, parseInt(n, 10) || 0); while (n > 0){ d.setDate(d.getDate() - 1); if (d.getDay() !== 0 && d.getDay() !== 6) n--; } return cmIso(d); }
+  function cmAddBusiness(iso, n){ var d = new Date(iso + "T00:00:00"); n = Math.max(0, parseInt(n, 10) || 0); while (n > 0){ d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d.getDay() !== 6) n--; } return cmIso(d); }
+  function cmBusinessBetween(fromIso, toIso){ var d = new Date(fromIso + "T00:00:00"), e = new Date(toIso + "T00:00:00"), n = 0; while (d < e){ d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d.getDay() !== 6) n++; } return n; }
   function cmShow(iso){ var d = iso ? new Date(iso + "T00:00:00") : null; return d && !isNaN(d.getTime()) ? d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", year: "numeric" }) : ""; }
+  var cmAskedFirst = {}, cmDateWaiters = [];
+  function cmAskKey(level, room, joineryId){ return String(level || "") + "\u0000" + String(room || "") + "\u0000" + String(joineryId || ""); }
+  // The date popup straight away (not 0.7 s after the save), for the items about to be marked check measured; resolves when it is closed. The later marking of
+  // those items does not ask again.
+  function askDeliveryDatesFirst(items){
+    if (VIEW_ONLY_MODE || window.__utzNoCmDatePrompt || !activeProjectHandle || !items || !items.length) return Promise.resolve();
+    return new Promise(function(resolve){
+      cmDateWaiters.push(resolve);
+      items.forEach(function(it){ cmAskedFirst[cmAskKey(it.level, it.room, it.joineryId)] = true; cmDateQueue.push({ ph: activeProjectHandle, level: it.level, room: it.room || "", joineryId: it.joineryId || "" }); });
+      clearTimeout(cmDateTimer); runDeliveryDatePrompt();
+      // safety: if the popup never came up the save must not wait for it
+      setTimeout(function(){ var bd = document.getElementById("cmDateBackdrop"); if (bd && bd.hidden && cmDateWaiters.indexOf(resolve) !== -1){ cmDateWaiters = cmDateWaiters.filter(function(w){ return w !== resolve; }); resolve(); } }, 4000);
+    });
+  }
   function queueDeliveryDatePrompt(projectHandle, level, room, joineryId){
     if (VIEW_ONLY_MODE || window.__utzNoCmDatePrompt || !projectHandle) return;
+    var ak = cmAskKey(level, room, joineryId); if (cmAskedFirst[ak]){ delete cmAskedFirst[ak]; return; }
     cmDateQueue.push({ ph: projectHandle, level: level, room: room || "", joineryId: joineryId || "" });
     clearTimeout(cmDateTimer); cmDateTimer = setTimeout(runDeliveryDatePrompt, 700);
   }
@@ -18875,6 +18969,34 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
     }).then(function(dirH){ return dirH.getFileHandle(statusEventFileName(by, statusEventStamp(), "set"), { create: true }); })
       .then(function(fh){ return verifiedHandleWrite(fh, new Blob([JSON.stringify(payload)], { type: "application/json" })); });
   }
+  /* (2026-10-08) Andrew: "need to fix the can't update schedule date issue". On the tablet the folder write sometimes fails (the sync app is rewriting folders,
+     Android drops the permission). A date that can't be written is no longer lost or blocked: it is kept on this device and written as soon as the folder
+     answers -- when the app starts, when it comes back to the front, and every minute while it is open. The event is the same file the Scheduler reads. */
+  var CM_PENDING_KEY = "utzline-pending-schedule", cmFlushing = false;
+  function cmPendingRead(){ try{ var a = JSON.parse(localStorage.getItem(CM_PENDING_KEY) || "[]"); return Array.isArray(a) ? a : []; }catch(e){ return []; } }
+  function cmPendingWrite(a){ try{ if (a.length) localStorage.setItem(CM_PENDING_KEY, JSON.stringify(a)); else localStorage.removeItem(CM_PENDING_KEY); }catch(e){} }
+  function cmPendingAdd(projectName, it, fields){
+    var a = cmPendingRead();
+    a.push({ project: projectName, level: it.level, room: it.room || "", joineryId: it.joineryId || "", fields: Object.assign({ by: deviceUserName || "Site Measure", at: new Date().toISOString() }, fields) });
+    cmPendingWrite(a);
+  }
+  function cmFlushPending(){
+    if (cmFlushing || !projectsRootHandle) return Promise.resolve(0);
+    var a = cmPendingRead(); if (!a.length) return Promise.resolve(0);
+    cmFlushing = true;
+    var done = 0;
+    return whenWritesIdle().then(function(){ return a; }).then(function(a){ return a.reduce(function(chain, e){
+      return chain.then(function(){
+        return projectsRootHandle.getDirectoryHandle(e.project, { create: false }).then(function(ph){
+          return cmWriteSchedule(ph, { level: e.level, room: e.room, joineryId: e.joineryId }, e.fields);
+        }).then(function(){
+          done++; cmPendingWrite(cmPendingRead().filter(function(x){ return !(x.project === e.project && x.level === e.level && x.room === e.room && x.joineryId === e.joineryId && x.fields && x.fields.at === e.fields.at); }));
+        }, function(err){ console.warn("Pending delivery date not written yet:", err); });
+      });
+    }, Promise.resolve()); }).then(function(){ cmFlushing = false; if (done) showToast(done === 1 ? "A saved delivery date has now gone into the project." : done + " saved delivery dates have now gone into the project."); return done; }, function(){ cmFlushing = false; return done; });
+  }
+  setInterval(function(){ cmFlushPending(); }, 60000);
+  document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") setTimeout(cmFlushPending, 1500); });
   function runDeliveryDatePrompt(){
     if (cmDateBusy || !cmDateQueue.length) return;
     cmDateBusy = true;
@@ -18882,7 +19004,7 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
     cmDateQueue.forEach(function(q){ var k = q.level + "\u0000" + q.room + "\u0000" + q.joineryId; if (q.ph === ph && !seen[k]){ seen[k] = 1; items.push(q); } });
     cmDateQueue = cmDateQueue.filter(function(q){ return q.ph !== ph; });
     var bd = document.getElementById("cmDateBackdrop"), inp = document.getElementById("cmDateInput"), lead = document.getElementById("cmLeadInput"), err = document.getElementById("cmDateErr");
-    function done(){ bd.hidden = true; cmDateBusy = false; if (cmDateQueue.length) runDeliveryDatePrompt(); }
+    function done(){ bd.hidden = true; cmDateBusy = false; var ws = cmDateWaiters; cmDateWaiters = []; ws.forEach(function(w){ try{ w(); }catch(e){} }); if (cmDateQueue.length) runDeliveryDatePrompt(); }
     function refresh(){
       document.getElementById("cmDateShown").textContent = cmShow(inp.value);
       var st = inp.value ? cmSubBusiness(inp.value, lead.value === "" ? CM_DEFAULT_LEAD_DAYS : lead.value) : "";
@@ -18898,19 +19020,62 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
       var leadWas = cur && cur.manufactureLeadTimeDays != null && items.length === 1 ? Number(cur.manufactureLeadTimeDays) : CM_DEFAULT_LEAD_DAYS, left = 0, dd = new Date(today + "T00:00:00"), end = new Date(inp.value + "T00:00:00");
       while (dd < end){ dd.setDate(dd.getDate() + 1); if (dd.getDay() !== 0 && dd.getDay() !== 6) left++; }
       lead.value = Math.max(0, Math.min(leadWas, left));
+      startAnchor = cmSubBusiness(inp.value, lead.value);
       err.hidden = true; refresh(); bd.hidden = false;
     });
-    inp.oninput = lead.oninput = refresh;
+    // (2026-10-08) Andrew: "with delivery date popup, changing date changes the days and vice versa": the manufacture start date is the fixed point between them --
+    // a new delivery date works out the lead days to it, new lead days work out the delivery date from it
+    var startAnchor = "";
+    inp.oninput = function(){
+      if (inp.value){
+        if (!startAnchor) startAnchor = cmSubBusiness(inp.value, lead.value === "" ? CM_DEFAULT_LEAD_DAYS : lead.value);
+        if (inp.value <= startAnchor){ lead.value = 0; startAnchor = inp.value; }
+        else {
+          // the lead days that put the start exactly on the fixed start date (a weekend delivery date is one day out from a plain count)
+          var n0 = cmBusinessBetween(startAnchor, inp.value), n = n0, k;
+          for (k = Math.max(0, n0 - 1); k <= n0 + 2; k++){ if (cmSubBusiness(inp.value, k) === startAnchor){ n = k; break; } }
+          lead.value = n; startAnchor = cmSubBusiness(inp.value, n);
+        }
+      }
+      refresh();
+    };
+    lead.oninput = function(){
+      if (lead.value !== "" && startAnchor){ inp.value = cmAddBusiness(startAnchor, lead.value); }
+      refresh();
+    };
     document.getElementById("cmDateKeep").onclick = done;
     document.getElementById("cmDateSave").onclick = function(){
       var delivery = inp.value; if (!delivery){ err.hidden = false; err.textContent = "A required delivery date is needed."; return; }
       var leadN = lead.value === "" ? CM_DEFAULT_LEAD_DAYS : Math.max(0, parseInt(lead.value, 10) || 0), start = cmSubBusiness(delivery, leadN);
       if (start < cmIso(new Date())){ err.hidden = false; err.textContent = "The manufacture start date (" + cmShow(start) + ") is already in the past. Change the delivery date or shorten the lead time."; return; }
       var btn = document.getElementById("cmDateSave"); btn.disabled = true;
-      items.reduce(function(chain, it){ return chain.then(function(){ return cmWriteSchedule(ph, it, { requiredDeliveryDate: delivery, manufactureLeadTimeDays: leadN, manufactureStartDate: start }); }); }, Promise.resolve()).then(function(){
+      var phNow = ph;
+      function writeAll(){ return items.reduce(function(chain, it){ return chain.then(function(){ return cmWriteSchedule(phNow, it, { requiredDeliveryDate: delivery, manufactureLeadTimeDays: leadN, manufactureStartDate: start }); }); }, Promise.resolve()); }
+      function wait(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+      // A lapsed folder permission is asked for again inside the tap; a folder the sync app has been rewriting is found again by name and the save tried again
+      // (twice, a moment apart). If it still can't be written the date is kept on this device and goes in as soon as the folder answers (cmFlushPending).
+      function fresh(){ eventsDirMemo = {}; try{ UtzEvents.refresh(); }catch(x){} return projectsRootHandle ? projectsRootHandle.getDirectoryHandle(ph.name, { create: false }).then(function(f){ phNow = f; }, function(){}) : Promise.resolve(); }
+      function attempt(n){
+        return writeAll().catch(function(e){
+          var nm = e && e.name;
+          if ((nm === "NotAllowedError" || nm === "SecurityError") && ph.requestPermission && n === 0)
+            return ph.requestPermission({ mode: "readwrite" }).then(function(p){ if (p !== "granted") return Promise.reject(e); return fresh().then(function(){ return attempt(n + 1); }); });
+          if (n >= 2 || (e && e.code === "path_long")) return Promise.reject(e);
+          return wait(700 * (n + 1)).then(fresh).then(function(){ return attempt(n + 1); });
+        });
+      }
+      btn.textContent = "Saving…";
+      whenWritesIdle().then(function(){ return attempt(0); }).then(function(){
         showToast(items.length > 1 ? "Delivery date set for " + items.length + " items." : "Delivery date set.");
         done();
-      }, function(e){ console.error("Saving the delivery date failed:", e); err.hidden = false; err.textContent = "Couldn't save the date — try again, or Keep existing date."; }).then(function(){ btn.disabled = false; });
+      }, function(e){
+        console.error("Saving the delivery date failed:", e);
+        var n = e && (e.name || e.code);
+        if (e && e.code === "path_long"){ err.hidden = false; err.textContent = pathLongMessage(); return; }
+        items.forEach(function(it){ cmPendingAdd(ph.name, it, { requiredDeliveryDate: delivery, manufactureLeadTimeDays: leadN, manufactureStartDate: start }); });
+        showToast("Couldn't reach the project folder just now (" + (n || "error") + ") — the date is saved on this device and goes in as soon as it can.", 7000);
+        done();
+      }).then(function(){ btn.disabled = false; btn.textContent = "Save date"; });
     };
   }
   // Re-reads the whole file and re-renders once it lands -- called right
@@ -20531,8 +20696,158 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
     ed.setSelectionRange(a, a);
     ed.dispatchEvent(new Event("input", { bubbles: true }));
   }
-  function measurePadKey(k){
+  // ---- (2026-10-08) Andrew: "all need a calculator on the check measure page with copy into measure function and fast keys of -13 and -26 and -39" ----
+  // Calc: an expression typed on the pad (+ - x / and brackets), "=" works it out, "Copy into measure" puts the answer into the label being typed.
+  // Fast keys: -13 / -26 / -39 take that much off the number in the label (or off the calculator's answer while the calculator is open).
+  var measureCalc = { on: false, expr: "" };
+  function calcEval(src){
+    var t = String(src || "").replace(/[\u00d7x*]/g, "*").replace(/[\u00f7]/g, "/").replace(/[\u2212\u2013]/g, "-").replace(/\s+/g, ""), i = 0;
+    if (!t) return null;
+    function num(){ var m = /^\d*\.?\d+/.exec(t.slice(i)); if (!m) throw 0; i += m[0].length; return parseFloat(m[0]); }
+    function atom(){
+      if (t[i] === "-"){ i++; return -atom(); }
+      if (t[i] === "("){ i++; var v = sum(); if (t[i] !== ")") throw 0; i++; return v; }
+      return num();
+    }
+    function prod(){ var v = atom(); while (t[i] === "*" || t[i] === "/"){ var o = t[i++], r = atom(); if (o === "/" && r === 0) throw 0; v = o === "*" ? v * r : v / r; } return v; }
+    function sum(){ var v = prod(); while (t[i] === "+" || t[i] === "-"){ var o = t[i++], r = prod(); v = o === "+" ? v + r : v - r; } return v; }
+    try{ var out = sum(); if (i !== t.length || !isFinite(out)) return null; return Math.round(out * 100) / 100; }catch(e){ return null; }
+  }
+  function calcShow(){
+    var pad = measurePadEl; if (!pad) return;
+    var d = pad.querySelector(".mp-calc-disp"); if (!d) return;
+    var v = calcEval(measureCalc.expr);
+    d.innerHTML = "";
+    var e = document.createElement("span"); e.textContent = measureCalc.expr || "0"; d.appendChild(e);
+    var r = document.createElement("small"); r.textContent = (measureCalc.expr && v != null) ? "= " + v : (measureCalc.expr ? "…" : "type a sum, e.g. 2450-13"); d.appendChild(r);
+  }
+  function calcLabelNumber(){
+    var m = editorEl && /-?\d*\.?\d+/.exec(editorEl.value || "");
+    return m ? parseFloat(m[0]) : null;
+  }
+  function calcSetLabel(v){
+    var ed = editorEl; if (!ed) return;
+    var rest = (ed.value || "").replace(/-?\d*\.?\d+/, "").trim();   // a quick text (ctr, ftc...) stays
+    ed.value = String(v) + (rest ? " " + rest : "");
+    ed.setSelectionRange(ed.value.length, ed.value.length);
+    ed.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  function measureCalcKey(k){
+    var pad = measurePadEl;
+    if (k === "calc"){
+      measureCalc.on = !measureCalc.on; if (pad) pad.classList.toggle("calc-on", measureCalc.on);
+      if (measureCalc.on && !measureCalc.expr){ var n = calcLabelNumber(); if (n != null) measureCalc.expr = String(n); }
+      calcShow(); positionMeasurePad(); return;
+    }
+    if (k === "c:C"){ measureCalc.expr = ""; calcShow(); return; }
+    if (k === "c:="){ var v = calcEval(measureCalc.expr); if (v != null) measureCalc.expr = String(v); calcShow(); return; }
+    if (k === "c:copy"){
+      var r = calcEval(measureCalc.expr);
+      if (r == null){ showToast("Finish the sum first."); return; }
+      calcSetLabel(r);
+      measureCalc.expr = ""; measureCalc.on = false; if (pad) pad.classList.remove("calc-on");
+      calcShow(); positionMeasurePad(); return;
+    }
+    if (/^c:/.test(k)){ measureCalc.expr += k.slice(2); calcShow(); return; }
+  }
+  function measureFastKey(n){
+    if (measureCalc.on){
+      var cur = calcEval(measureCalc.expr); if (cur == null){ var l = calcLabelNumber(); cur = l; }
+      if (cur == null){ showToast("Type a number first."); return; }
+      measureCalc.expr = String(Math.round((cur - n) * 100) / 100); calcShow(); return;
+    }
+    var v = calcLabelNumber();
+    if (v == null){ showToast("Type the measure first, then tap \u2212" + n + "."); return; }
+    calcSetLabel(Math.round((v - n) * 100) / 100);
+  }
+  // (2026-10-08) Andrew: "text to speech button" -- reads the measure (or the calculator's answer while it is open) out loud so it can be checked without looking
+  var SAY_WORDS = { ctr: "centre", ftc: "floor to ceiling", bhead: "bulkhead", oall: "overall" };
+  function measureSay(){
+    var text = "";
+    if (measureCalc.on){ var v = calcEval(measureCalc.expr); text = v != null ? String(v) : ""; }
+    if (!text) text = (editorEl && editorEl.value) || "";
+    text = String(text).trim();
+    if (!text){ showToast("Nothing to read out yet."); return; }
+    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance !== "function"){ showToast("This device can't read out loud."); return; }
+    var words = text.replace(/[a-z]+/gi, function(w){ return SAY_WORDS[w.toLowerCase()] || w; }).replace(/-/g, " minus ").replace(/\./g, " point ");
+    try{ window.speechSynthesis.cancel(); var u = new SpeechSynthesisUtterance(words); u.lang = "en-AU"; u.rate = 0.9; window.speechSynthesis.speak(u); }catch(e){ showToast("This device can't read out loud."); }
+  }
+  // (2026-10-08) Andrew: "speech to text" -- the mic key listens (Chrome / Android's own recogniser; it needs the internet) and types what it hears:
+  // "two thousand four hundred and fifty", "2450", "two four five zero", "point five", and the quick words (centre, floor to ceiling, bulkhead, overall).
+  // With the calculator open it also takes "plus / minus / times / divided by" and builds the sum.
+  var SPEECH_ONES = { zero: 0, oh: 0, one: 1, two: 2, to: 2, too: 2, three: 3, four: 4, for: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19 };
+  var SPEECH_TENS = { twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+  var SPEECH_QUICK = { centre: "ctr", center: "ctr", ceiling: "ftc", bulkhead: "bhead", overall: "oall", ctr: "ctr", ftc: "ftc", bhead: "bhead", oall: "oall" };
+  var SPEECH_OPS = { plus: "+", add: "+", minus: "-", take: "-", less: "-", times: "*", x: "*", multiplied: "*", divided: "/", over: "/" };
+  // words -> { numbers / operators / quick texts } as one string; exported for the test
+  function speechToMeasure(said, calcOn){
+    var w = String(said || "").toLowerCase().replace(/[,]/g, " ").replace(/(\d)\s*mm\b/g, "$1").replace(/\bmillimet(?:er|re)s?\b|\bmm\b/g, " ").split(/\s+/).filter(Boolean);
+    var out = [], i = 0;
+    function pushNum(n){ out.push(String(n)); }
+    while (i < w.length){
+      var t = w[i];
+      if (/^\d+(\.\d+)?$/.test(t)){ out.push(t); i++; continue; }
+      if (t === "point" || t === "dot"){ var ds = ""; i++; while (i < w.length && (SPEECH_ONES[w[i]] != null && SPEECH_ONES[w[i]] < 10 || /^\d$/.test(w[i]))){ ds += /^\d$/.test(w[i]) ? w[i] : SPEECH_ONES[w[i]]; i++; } if (ds) out.push("." + ds); continue; }
+      if (SPEECH_QUICK[t]){ out.push(SPEECH_QUICK[t]); i += (t === "ceiling" ? 1 : 1); continue; }
+      if (SPEECH_OPS[t] && (calcOn || (t === "minus" && !out.length))){ if (t === "divided" && w[i + 1] === "by") i++; out.push(SPEECH_OPS[t]); i++; continue; }
+      if (SPEECH_ONES[t] != null || SPEECH_TENS[t] != null || t === "hundred" || t === "thousand" || t === "and" || t === "a"){
+        // a run of number words; a run of single digits ("two four five zero") is read digit by digit
+        var run = [];
+        while (i < w.length && (SPEECH_ONES[w[i]] != null || SPEECH_TENS[w[i]] != null || w[i] === "hundred" || w[i] === "thousand" || w[i] === "and" || (w[i] === "a" && (w[i + 1] === "hundred" || w[i + 1] === "thousand")))){ run.push(w[i]); i++; }
+        while (run.length && (run[0] === "and" || run[0] === "a" && run.length === 1)) run.shift();
+        while (run.length && run[run.length - 1] === "and") run.pop();
+        if (!run.length) continue;
+        var allDigits = run.every(function(x){ return SPEECH_ONES[x] != null && SPEECH_ONES[x] < 10; });
+        if (allDigits && run.length > 1){ pushNum(run.map(function(x){ return SPEECH_ONES[x]; }).join("")); continue; }
+        var total = 0, cur = 0;
+        run.forEach(function(x){
+          if (x === "and" || x === "a") return;
+          if (x === "hundred") cur = (cur || 1) * 100;
+          else if (x === "thousand"){ total += (cur || 1) * 1000; cur = 0; }
+          else cur += SPEECH_ONES[x] != null ? SPEECH_ONES[x] : SPEECH_TENS[x];
+        });
+        pushNum(total + cur); continue;
+      }
+      i++;   // a word it doesn't know
+    }
+    // glue: numbers and quick texts apart by a space; operators attached
+    var res = "";
+    out.forEach(function(x){ var op = /^[-+*\/]$/.test(x); res += (op || /^\./.test(x) || !res || /[-+*\/]$/.test(res)) ? x : " " + x; });
+    return res;
+  }
+  var measureListening = null;
+  function measureListen(btn){
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR){ showToast("Speaking a measure isn't available on this device."); return; }
+    if (measureListening){ try{ measureListening.stop(); }catch(e){} return; }
+    var rec = new SR(); rec.lang = "en-AU"; rec.interimResults = false; rec.maxAlternatives = 1; measureListening = rec;
+    if (btn) btn.classList.add("mp-listening");
+    function end(){ measureListening = null; if (btn) btn.classList.remove("mp-listening"); }
+    rec.onresult = function(ev){
+      var said = ev.results && ev.results[0] && ev.results[0][0] ? ev.results[0][0].transcript : "";
+      var txt = speechToMeasure(said, measureCalc.on);
+      if (!txt){ showToast("Didn't catch a measure in \u201c" + said + "\u201d."); return; }
+      if (measureCalc.on){ measureCalc.expr += txt; calcShow(); }
+      else {
+        var ed = editorEl; if (!ed) return;
+        var quickOnly = /^[a-z ]+$/.test(txt);
+        if (quickOnly) measurePadInsert(txt, true);
+        else { ed.value = txt; ed.setSelectionRange(txt.length, txt.length); ed.dispatchEvent(new Event("input", { bubbles: true })); }
+      }
+      showToast("Heard: " + said);
+    };
+    rec.onerror = function(ev){ showToast(ev && ev.error === "not-allowed" ? "Allow the microphone to speak a measure." : (ev && ev.error === "network" ? "Speech needs the internet." : "Couldn't hear that — try again.")); end(); };
+    rec.onend = end;
+    try{ rec.start(); }catch(e){ end(); showToast("Couldn't start the microphone."); }
+  }
+  function measurePadKey(k, btn){
     if (!editorEl) return;
+    if (k === "mic") return measureListen(btn);
+    if (k === "say") return measureSay();
+    if (k === "calc" || /^c:/.test(k)) return measureCalcKey(k);
+    if (/^-\d+$/.test(k)) return measureFastKey(parseInt(k.slice(1), 10));
+    if (measureCalc.on && /^[0-9.]$/.test(k)){ measureCalc.expr += k; calcShow(); return; }
+    if (measureCalc.on && k === "back"){ measureCalc.expr = measureCalc.expr.slice(0, -1); calcShow(); return; }
     if (k === "back") measurePadBackspace();
     else if (k === "space") measurePadInsert(" ", false);
     else if (k === "done") commitInlineEdit();
@@ -20560,9 +20875,16 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
       ["7", "8", "9", "back", "ctr"],
       ["4", "5", "6", "space", "ftc"],
       ["1", "2", "3", "abc", "bhead"],
-      [".", "0", "done", "oall"]
+      [".", "0", "done", "oall"],
+      ["-13", "-26", "-39", "calc", "mic"]
     ];
-    var LABELS = { back: "\u232B", space: "Space", abc: "ABC", done: "Done" };
+    var LABELS = { back: "\u232B", space: "Space", abc: "ABC", done: "Done", "-13": "\u221213", "-26": "\u221226", "-39": "\u221239", calc: "Calc", mic: "\ud83c\udfa4" };
+    measureCalc = { on: false, expr: "" };
+    var calcBox = document.createElement("div"); calcBox.className = "mp-calc";
+    calcBox.innerHTML = '<div class="mp-calc-disp"></div>' +
+      '<div class="mp-calc-row"><button type="button" tabindex="-1" data-key="c:+">+</button><button type="button" tabindex="-1" data-key="c:-">\u2212</button><button type="button" tabindex="-1" data-key="c:*">\u00d7</button><button type="button" tabindex="-1" data-key="c:/">\u00f7</button><button type="button" tabindex="-1" data-key="c:(">(</button><button type="button" tabindex="-1" data-key="c:)">)</button><button type="button" tabindex="-1" data-key="c:=" class="mp-fn">=</button><button type="button" tabindex="-1" data-key="c:C" class="mp-fn">C</button></div>' +
+      '<div class="mp-calc-row"><button type="button" tabindex="-1" data-key="c:copy" class="mp-done" style="grid-column:auto;flex:1">Copy into measure</button><button type="button" tabindex="-1" data-key="say" class="mp-fn" style="flex:0 0 64px" aria-label="Read out loud">\ud83d\udd0a Say</button></div>';
+    pad.appendChild(calcBox);
     layout.forEach(function(row){
       row.forEach(function(k){
         var b = document.createElement("button");
@@ -20571,6 +20893,8 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
         b.setAttribute("data-key", k);
         b.textContent = LABELS[k] || k;
         if (MEASURE_QUICK_TEXTS.indexOf(k) !== -1) b.className = "mp-quick";
+        else if (/^-\d+$/.test(k)) b.className = "mp-minus";
+        else if (k === "calc" || k === "mic") b.className = "mp-fn";
         else if (k === "done") b.className = "mp-done";
         else if (LABELS[k]) b.className = "mp-fn";
         if (k === "back") b.setAttribute("aria-label", "Backspace");
@@ -20587,7 +20911,7 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
       measurePadHolding = true;
       b.classList.add("mp-hit");
       setTimeout(function(){ b.classList.remove("mp-hit"); }, 120);
-      try{ measurePadKey(b.getAttribute("data-key")); }
+      try{ measurePadKey(b.getAttribute("data-key"), b); }
       finally{ setTimeout(function(){ measurePadHolding = false; }, 0); }
     }
     pad.addEventListener("pointerdown", press);
@@ -20596,6 +20920,7 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
     });
     stage.appendChild(pad);
     measurePadEl = pad;
+    calcShow();
     positionMeasurePad();
   }
   function closeMeasurePad(){
@@ -23446,6 +23771,8 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
       return populateProjectList().then(function(){
         gateListFolderLabel.textContent = "Projects folder: “" + projectsRootName + "”";
         showGateState("list");
+        cmFlushPending();
+        if (resumeAfterShareDue()) return tryRestoreLastActiveWork();   // the app was reloaded while sharing: Reconnect, then straight back to where you were
       });
     }).catch(function(err){
       console.error("Reconnect Projects folder failed:", err);
@@ -23766,6 +24093,9 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
       viewJobNoteItemPageBtn.style.display = (activeJoineryItemPage && vjnRec && vjnRec.jobNote) ? "" : "none";
     var dwBtn = document.getElementById("drawingsItemPageBtn");
     if (dwBtn) dwBtn.style.display = activeJoineryItemPage ? "" : "none";
+    // (2026-10-08) Andrew: "don't need share in the main site measure page anymore, just in the individual site measures"
+    var shBtn = document.getElementById("shareBtn");
+    if (shBtn) shBtn.style.display = activeJoineryItemPage ? "" : "none";
     var saBtn = document.getElementById("startAgainItemPageBtn");
     if (saBtn) saBtn.style.display = (activeJoineryItemPage && !VIEW_ONLY_MODE) ? "" : "none";
     }
@@ -25069,6 +25399,10 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
       // (2026-10-04) zoom: the caller re-renders the plan snapshot wider / closer and hands back the new picture
       var zIn = document.getElementById("cropZoomInBtn"), zOut = document.getElementById("cropZoomOutBtn");
       zIn.hidden = zOut.hidden = !opts.onZoom;
+      // (2026-10-08) Andrew: "give a cancel button here (crop screen)" -- for the plan snapshot only: same as the Back button, nothing is opened or changed
+      var cancelBtn = document.getElementById("cropCancelBtn");
+      cancelBtn.hidden = !opts.cancelable;
+      cancelBtn.onclick = opts.cancelable ? function(){ cropClosedByBack = true; closeCropDialog(null); } : null;
       function zoom(f){
         zIn.disabled = zOut.disabled = true;
         Promise.resolve(opts.onZoom(f)).then(function(n){
@@ -27157,7 +27491,7 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
   var shareBtn = document.getElementById("shareBtn");
   // (v84) Andrew: "can we reintroduce the share function ... from within the joinery item check measure". The button used to appear only where
   // the device has a share sheet; it is always there now (on a PC it saves the file instead).
-  shareBtn.style.display = "";
+  shareBtn.style.display = activeJoineryItemPage ? "" : "none";   // (2026-10-08) only on an individual site measure (item page), not on the level plan
   shareBtn.addEventListener("click", shareCurrentPlan);
 
   /* ============================== resize ============================== */
@@ -27535,6 +27869,8 @@ window.UTZLINE_LOGO_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ
           return populateProjectList().then(function(){
             gateListFolderLabel.textContent = "Projects folder: “" + projectsRootName + "”";
             showGateState("list");
+            cmFlushPending();
+            if (resumeAfterShareDue()) return tryRestoreLastActiveWork();
           }); // (2026-10-04) Andrew: "the site measure and viewer apps to open on home screen each time, currently they go back to
               // wherever you were last" -- the project list every time; the last project / level is no longer re-opened
               // (tryRestoreLastActiveWork is kept, unused)
